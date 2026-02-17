@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="backend/IoTDataPortal.API/IoTDataPortal.API.csproj" />
+    <Project Path="backend/IoTDataPortal.Models/IoTDataPortal.Models.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/IoTDataPortal.Tests/IoTDataPortal.Tests.csproj" />
+  </Folder>
+</Solution>

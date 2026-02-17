@@ -1,0 +1,420 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import { useAuth } from '../contexts/AuthContext';
+import type { Device, Measurement } from '../types';
+import { deviceService } from '../services/deviceService';
+import { measurementService } from '../services/measurementService';
+
+type TimeFilter = '24h' | '7d';
+
+export function DeviceDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  
+  const [device, setDevice] = useState<Device | null>(null);
+  const [measurements, setMeasurements] = useState<Measurement[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('24h');
+  const [connection, setConnection] = useState<HubConnection | null>(null);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [isGeneratingHistory, setIsGeneratingHistory] = useState(false);
+
+  const loadDevice = useCallback(async () => {
+    if (!id) return;
+    try {
+      const data = await deviceService.getById(id);
+      setDevice(data);
+    } catch (err) {
+      setError('Failed to load device');
+      console.error(err);
+    }
+  }, [id]);
+
+  const loadMeasurements = useCallback(async () => {
+    if (!id) return;
+    try {
+      const now = new Date();
+      const from = new Date();
+      if (timeFilter === '24h') {
+        from.setHours(from.getHours() - 24);
+      } else {
+        from.setDate(from.getDate() - 7);
+      }
+
+      const data = await measurementService.getByDevice(
+        id,
+        from.toISOString(),
+        now.toISOString()
+      );
+      setMeasurements(data.reverse()); // Oldest first for chart
+    } catch (err) {
+      setError('Failed to load measurements');
+      console.error(err);
+    }
+  }, [id, timeFilter]);
+
+  // Initial load
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      await loadDevice();
+      await loadMeasurements();
+      setLoading(false);
+    };
+    load();
+  }, [loadDevice, loadMeasurements]);
+
+  // SignalR connection
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token || !id) return;
+
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    
+    const newConnection = new HubConnectionBuilder()
+      .withUrl(`${API_URL}/measurementHub?access_token=${token}`)
+      .withAutomaticReconnect()
+      .configureLogging(LogLevel.Information)
+      .build();
+
+    newConnection.on('ReceiveMeasurement', (measurement: Measurement) => {
+      if (measurement.deviceId === id) {
+        setMeasurements((prev) => [...prev, measurement].slice(-500)); // Keep last 500
+      }
+    });
+
+    newConnection
+      .start()
+      .then(() => {
+        console.log('SignalR Connected');
+        // Join device group
+        newConnection.invoke('JoinDeviceGroup', id);
+      })
+      .catch((err) => console.error('SignalR Connection Error:', err));
+
+    setConnection(newConnection);
+
+    return () => {
+      if (newConnection) {
+        newConnection.invoke('LeaveDeviceGroup', id).catch(() => {});
+        newConnection.stop();
+      }
+    };
+  }, [id]);
+
+  const handleSimulate = async () => {
+    if (!id) return;
+    try {
+      setIsSimulating(true);
+      await measurementService.simulate(id, 1);
+    } catch (err) {
+      setError('Failed to simulate measurement');
+      console.error(err);
+    } finally {
+      setIsSimulating(false);
+    }
+  };
+
+  const handleGenerateHistory = async () => {
+    if (!id) return;
+    if (!confirm('This will generate 7 days of historical data. Continue?')) return;
+    
+    try {
+      setIsGeneratingHistory(true);
+      await measurementService.generateHistorical(id, 7);
+      await loadMeasurements();
+    } catch (err) {
+      setError('Failed to generate historical data');
+      console.error(err);
+    } finally {
+      setIsGeneratingHistory(false);
+    }
+  };
+
+  const handleDeleteDevice = async () => {
+    if (!id) return;
+    if (!confirm('Are you sure you want to delete this device and all its data?')) return;
+    
+    try {
+      await deviceService.delete(id);
+      navigate('/');
+    } catch (err) {
+      setError('Failed to delete device');
+      console.error(err);
+    }
+  };
+
+  // Format chart data
+  const chartData = measurements.map((m) => ({
+    time: new Date(m.timestamp).toLocaleTimeString('sv-SE', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }),
+    fullTime: new Date(m.timestamp).toLocaleString('sv-SE'),
+    temperature: m.temperature,
+    humidity: m.humidity,
+    energyUsage: m.energyUsage,
+  }));
+
+  // Latest measurements for table
+  const latestMeasurements = [...measurements].reverse().slice(0, 10);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!device) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900">Device not found</h2>
+          <Link to="/" className="text-blue-600 hover:text-blue-800 mt-2 block">
+            Back to Dashboard
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {/* Header */}
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <Link to="/" className="text-gray-500 hover:text-gray-700">
+                ← Back
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">{device.name}</h1>
+                {device.location && (
+                  <p className="text-sm text-gray-500">📍 {device.location}</p>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleDeleteDevice}
+                className="text-red-600 hover:text-red-800 px-3 py-2 text-sm"
+              >
+                Delete Device
+              </button>
+              <button
+                onClick={logout}
+                className="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm"
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+            <button onClick={() => setError(null)} className="ml-4 text-red-900">
+              ×
+            </button>
+          </div>
+        )}
+
+        {/* Controls */}
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="flex flex-wrap justify-between items-center gap-4">
+            <div className="flex gap-2">
+              <span className="text-sm text-gray-600 self-center">Time range:</span>
+              <button
+                onClick={() => setTimeFilter('24h')}
+                className={`px-4 py-2 rounded-md text-sm font-medium ${
+                  timeFilter === '24h'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                24 Hours
+              </button>
+              <button
+                onClick={() => setTimeFilter('7d')}
+                className={`px-4 py-2 rounded-md text-sm font-medium ${
+                  timeFilter === '7d'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                7 Days
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSimulate}
+                disabled={isSimulating}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 text-sm"
+              >
+                {isSimulating ? 'Simulating...' : '⚡ Simulate Measurement'}
+              </button>
+              <button
+                onClick={handleGenerateHistory}
+                disabled={isGeneratingHistory}
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 text-sm"
+              >
+                {isGeneratingHistory ? 'Generating...' : '📊 Generate History'}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Real-time status */}
+        <div className="flex items-center gap-2 mb-4">
+          <div
+            className={`w-3 h-3 rounded-full ${
+              connection?.state === 'Connected' ? 'bg-green-500' : 'bg-red-500'
+            }`}
+          ></div>
+          <span className="text-sm text-gray-600">
+            {connection?.state === 'Connected' ? 'Real-time updates active' : 'Connecting...'}
+          </span>
+        </div>
+
+        {/* Chart */}
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Measurement History
+          </h2>
+          {chartData.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              No measurements yet. Click "Simulate Measurement" or "Generate History" to add data.
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={400}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="time"
+                  tick={{ fontSize: 12 }}
+                  interval="preserveStartEnd"
+                />
+                <YAxis yAxisId="temp" orientation="left" domain={['auto', 'auto']} />
+                <YAxis yAxisId="humidity" orientation="right" domain={[0, 100]} />
+                <Tooltip
+                  labelFormatter={(_, payload) =>
+                    payload?.[0]?.payload?.fullTime || ''
+                  }
+                />
+                <Legend />
+                <Line
+                  yAxisId="temp"
+                  type="monotone"
+                  dataKey="temperature"
+                  name="Temperature (°C)"
+                  stroke="#ef4444"
+                  strokeWidth={2}
+                  dot={false}
+                />
+                <Line
+                  yAxisId="humidity"
+                  type="monotone"
+                  dataKey="humidity"
+                  name="Humidity (%)"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={false}
+                />
+                <Line
+                  yAxisId="temp"
+                  type="monotone"
+                  dataKey="energyUsage"
+                  name="Energy (kWh)"
+                  stroke="#22c55e"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        {/* Latest Measurements Table */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Latest Measurements
+            </h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Timestamp
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Temperature
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Humidity
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Energy Usage
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {latestMeasurements.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                      No measurements yet
+                    </td>
+                  </tr>
+                ) : (
+                  latestMeasurements.map((m) => (
+                    <tr key={m.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(m.timestamp).toLocaleString('sv-SE')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <span className="text-red-600 font-medium">
+                          {m.temperature.toFixed(1)}°C
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <span className="text-blue-600 font-medium">
+                          {m.humidity.toFixed(1)}%
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <span className="text-green-600 font-medium">
+                          {m.energyUsage.toFixed(2)} kWh
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
