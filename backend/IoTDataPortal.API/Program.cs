@@ -120,6 +120,8 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapGet("/health", () => Results.Ok("ok"));
+
 app.MapMethods("{*path}", new[] { "OPTIONS" }, () => Results.Ok())
     .RequireCors("AllowFrontend");
 
