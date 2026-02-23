@@ -46,6 +46,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
+          path: ./myapp
       
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -53,5 +54,6 @@ jobs:
         with:
           app-name: 'IoTDataPortal-Api'
           slot-name: 'Production'
-          package: ${{env.DOTNET_ROOT}}/myapp
+          package: ./myapp
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_914BC71EC809413BADAE01C1B7B9E54D }}
+
