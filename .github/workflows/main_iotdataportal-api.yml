@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy ASP.Net Core app to Azure Web App - IoTDataPortal-Api
 
 on:
@@ -10,57 +7,43 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read # Required for actions/checkout
+      id-token: write # Required for azure/login
 
     steps:
-      - uses: actions/checkout@v4
+      # 1. Hämta koden
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up .NET Core
+      # 2. Setup .NET 10
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.x'
 
-      - name: Build with dotnet
+      # 3. Bygg projektet
+      - name: Build project
         run: dotnet build backend/IoTDataPortal.API/IoTDataPortal.API.csproj --configuration Release
 
-      - name: dotnet publish
+      # 4. Publicera projektet
+      - name: Publish project
         run: dotnet publish backend/IoTDataPortal.API/IoTDataPortal.API.csproj -c Release -o ./publish
 
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: .net-app
-          path: ./publish
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
-
-    steps:
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: .net-app
-      
-      - name: Login to Azure
+      # 5. Login till Azure
+      - name: Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_612A5293451D4CFAA18A4E816E3AECFB }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_D37DB4891EEA4D549582221FDBC9866A }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F4C09FC9A587480385344ECAE6557A87 }}
 
+      # 6. Deploy till Azure Web App
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'IoTDataPortal-Api'
           slot-name: 'Production'
           package: ./publish
-
-
