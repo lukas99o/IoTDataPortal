@@ -117,12 +117,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseGlobalExceptionHandler();
-
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseGlobalExceptionHandler();
 
 app.MapControllers();
 app.MapHub<MeasurementHub>("/measurementHub");
