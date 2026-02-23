@@ -120,6 +120,9 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapMethods("{*path}", new[] { "OPTIONS" }, () => Results.Ok())
+    .RequireCors("AllowFrontend");
+
 app.MapControllers();
 app.MapHub<MeasurementHub>("/measurementHub");
 
