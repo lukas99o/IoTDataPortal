@@ -113,19 +113,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseGlobalExceptionHandler();
 
-app.UseRouting();
-
 app.UseCors("AllowFrontend");
+
+app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGet("/health", () => Results.Ok("ok"));
-
-app.MapMethods("{*path}", new[] { "OPTIONS" }, () => Results.Ok())
-    .RequireCors("AllowFrontend");
-
-app.MapControllers().RequireCors("AllowFrontend");
+app.MapControllers();
 app.MapHub<MeasurementHub>("/measurementHub");
 
 using (var scope = app.Services.CreateScope())
