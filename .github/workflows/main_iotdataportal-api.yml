@@ -30,7 +30,7 @@ jobs:
       - name: Publish API project
         run: dotnet publish backend/IoTDataPortal.API/IoTDataPortal.API.csproj -c Release -o ./publish
 
-      # 5️⃣ Ladda upp publicerad mapp som artifact
+      # 5️⃣ Ladda upp publicerad mapp som artefakt
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -42,11 +42,12 @@ jobs:
     needs: build
 
     steps:
-      # 1️⃣ Ladda ner artifact
+      # 1️⃣ Ladda ner artefakten till ./publish
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
+          path: ./publish
 
       # 2️⃣ Deploya till Azure Web App
       - name: Deploy to Azure Web App
