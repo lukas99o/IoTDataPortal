@@ -1,4 +1,4 @@
-name: Build and deploy ASP.Net Core API to Azure Web App
+name: Build and deploy ASP.Net Core API to Azure App
 
 on:
   push:
@@ -57,3 +57,4 @@ jobs:
           slot-name: 'Production'
           package: ./publish
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_677AC178F9824B23B8C03B8D32E650A5 }}
+
