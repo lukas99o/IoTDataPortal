@@ -1,4 +1,4 @@
-name: Build and deploy ASP.Net Core app to Azure Web App - IoTDataPortal-Api
+name: Build and deploy ASP.Net Core API to Azure Web App
 
 on:
   push:
@@ -13,40 +13,46 @@ jobs:
       contents: read
 
     steps:
+      # 1️⃣ Hämta koden
       - uses: actions/checkout@v4
 
+      # 2️⃣ Installera .NET SDK
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.x'
 
+      # 3️⃣ Bygg API-projektet
       - name: Build API project
         run: dotnet build backend/IoTDataPortal.API/IoTDataPortal.API.csproj --configuration Release
 
+      # 4️⃣ Publicera API till en lokal mapp 'publish'
       - name: Publish API project
-        run: dotnet publish backend/IoTDataPortal.API/IoTDataPortal.API.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish backend/IoTDataPortal.API/IoTDataPortal.API.csproj -c Release -o ./publish
 
+      # 5️⃣ Ladda upp publicerad mapp som artifact
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          path: ./publish
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    
+
     steps:
+      # 1️⃣ Ladda ner artifact
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
+      # 2️⃣ Deploya till Azure Web App
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'IoTDataPortal-Api'
           slot-name: 'Production'
-          package: ${{env.DOTNET_ROOT}}/myapp
+          package: ./publish
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_677AC178F9824B23B8C03B8D32E650A5 }}
