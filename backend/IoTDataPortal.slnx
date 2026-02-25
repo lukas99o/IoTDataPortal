@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="IoT-DataPortal/backend/">
+    <Project Path="IoTDataPortal.API/IoTDataPortal.API.csproj" />
+    <Project Path="IoTDataPortal.Models/IoTDataPortal.Models.csproj" />
+  </Folder>
+</Solution>
