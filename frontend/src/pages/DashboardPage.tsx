@@ -57,7 +57,7 @@ export function DashboardPage() {
             <span className="text-sm text-gray-600">{user?.email}</span>
             <button
               onClick={logout}
-              className="text-sm text-red-600 hover:text-red-800"
+              className="text-sm text-red-600 hover:text-red-800 cursor-pointer"
             >
               Sign out
             </button>
@@ -71,7 +71,7 @@ export function DashboardPage() {
           <h2 className="text-xl font-semibold text-gray-900">My Devices</h2>
           <button
             onClick={() => setShowAddModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
           >
             Add Device
           </button>
@@ -108,7 +108,7 @@ export function DashboardPage() {
             </p>
             <button
               onClick={() => setShowAddModal(true)}
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 cursor-pointer"
             >
               Add Device
             </button>
@@ -134,7 +134,7 @@ export function DashboardPage() {
                     </div>
                     <button
                       onClick={() => handleDeleteDevice(device.id)}
-                      className="text-red-500 hover:text-red-700"
+                      className="text-red-500 hover:text-red-700 cursor-pointer"
                       title="Delete device"
                     >
                       <svg

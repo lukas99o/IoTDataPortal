@@ -213,13 +213,13 @@ export function DeviceDetailPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleDeleteDevice}
-                className="text-red-600 hover:text-red-800 px-3 py-2 text-sm"
+                className="text-red-600 hover:text-red-800 px-3 py-2 text-sm cursor-pointer"
               >
                 Delete Device
               </button>
               <button
                 onClick={logout}
-                className="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm"
+                className="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm cursor-pointer"
               >
                 Sign out
               </button>
@@ -233,7 +233,7 @@ export function DeviceDetailPage() {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
             {error}
-            <button onClick={() => setError(null)} className="ml-4 text-red-900">
+            <button onClick={() => setError(null)} className="ml-4 text-red-900 cursor-pointer">
               ×
             </button>
           </div>
@@ -248,8 +248,8 @@ export function DeviceDetailPage() {
                 onClick={() => setTimeFilter('24h')}
                 className={`px-4 py-2 rounded-md text-sm font-medium ${
                   timeFilter === '24h'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-blue-600 text-white cursor-pointer'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
                 }`}
               >
                 24 Hours
@@ -258,8 +258,8 @@ export function DeviceDetailPage() {
                 onClick={() => setTimeFilter('7d')}
                 className={`px-4 py-2 rounded-md text-sm font-medium ${
                   timeFilter === '7d'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-blue-600 text-white cursor-pointer'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
                 }`}
               >
                 7 Days
@@ -269,14 +269,14 @@ export function DeviceDetailPage() {
               <button
                 onClick={handleSimulate}
                 disabled={isSimulating}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 text-sm"
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 text-sm cursor-pointer disabled:cursor-not-allowed"
               >
                 {isSimulating ? 'Simulating...' : '⚡ Simulate Measurement'}
               </button>
               <button
                 onClick={handleGenerateHistory}
                 disabled={isGeneratingHistory}
-                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 text-sm"
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 text-sm cursor-pointer disabled:cursor-not-allowed"
               >
                 {isGeneratingHistory ? 'Generating...' : '📊 Generate History'}
               </button>
