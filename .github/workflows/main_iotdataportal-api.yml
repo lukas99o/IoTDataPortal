@@ -13,7 +13,7 @@ jobs:
       contents: read
 
     steps:
-      # 1️⃣ Hämta koden
+      # 1️⃣ Checkout koden
       - uses: actions/checkout@v4
 
       # 2️⃣ Installera .NET SDK
@@ -22,15 +22,23 @@ jobs:
         with:
           dotnet-version: '10.x'
 
-      # 3️⃣ Bygg API-projektet
+      # 3️⃣ Rensa publish-mappen (för att ta bort gamla filer/testprojekt)
+      - name: Clean publish folder
+        run: rm -rf ./publish
+
+      # 4️⃣ Bygg API-projektet
       - name: Build API project
         run: dotnet build backend/IoTDataPortal.API/IoTDataPortal.API.csproj --configuration Release
 
-      # 4️⃣ Publicera API till en lokal mapp 'publish'
+      # 5️⃣ Publicera API-projektet
       - name: Publish API project
         run: dotnet publish backend/IoTDataPortal.API/IoTDataPortal.API.csproj -c Release -o ./publish
 
-      # 5️⃣ Ladda upp publicerad mapp som artefakt
+      # 6️⃣ Lista publicerade filer (kontroll)
+      - name: List published files
+        run: ls -R ./publish
+
+      # 7️⃣ Ladda upp artefakten
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -42,14 +50,14 @@ jobs:
     needs: build
 
     steps:
-      # 1️⃣ Ladda ner artefakten till ./publish
+      # 1️⃣ Ladda ner artefakten
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
           path: ./publish
 
-      # 2️⃣ Deploya till Azure Web App
+      # 2️⃣ Deploy till Azure Web App
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
@@ -57,4 +65,3 @@ jobs:
           slot-name: 'Production'
           package: ./publish
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_677AC178F9824B23B8C03B8D32E650A5 }}
-
