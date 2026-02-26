@@ -15,13 +15,14 @@ import { useAuth } from '../contexts/AuthContext';
 import type { Device, Measurement } from '../types';
 import { deviceService } from '../services/deviceService';
 import { measurementService } from '../services/measurementService';
+import { AppNavbar } from '../components/AppNavbar';
 
 type TimeFilter = '24h' | '7d';
 
 export function DeviceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   
   const [device, setDevice] = useState<Device | null>(null);
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
@@ -195,38 +196,21 @@ export function DeviceDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <Link to="/" className="text-gray-500 hover:text-gray-700">
-                ← Back
-              </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{device.name}</h1>
-                {device.location && (
-                  <p className="text-sm text-gray-500">📍 {device.location}</p>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleDeleteDevice}
-                className="text-red-600 hover:text-red-800 px-3 py-2 text-sm cursor-pointer"
-              >
-                Delete Device
-              </button>
-              <button
-                onClick={logout}
-                className="text-gray-600 hover:text-gray-800 px-3 py-2 text-sm cursor-pointer"
-              >
-                Sign out
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppNavbar
+        title={device.name}
+        subtitle={device.location ? `📍 ${device.location}` : undefined}
+        backTo="/"
+        backLabel="Dashboard"
+        userEmail={user?.email}
+        onLogout={logout}
+      >
+        <button
+          onClick={handleDeleteDevice}
+          className="px-3 py-2 text-sm font-medium text-red-700 bg-red-50 rounded-md hover:bg-red-100 transition-colors cursor-pointer"
+        >
+          Delete Device
+        </button>
+      </AppNavbar>
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

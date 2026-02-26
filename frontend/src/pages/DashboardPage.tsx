@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import type { Device } from '../types';
 import { deviceService } from '../services/deviceService';
 import { AddDeviceModal } from '../components/AddDeviceModal';
+import { AppNavbar } from '../components/AppNavbar';
 
 export function DashboardPage() {
   const { user, logout } = useAuth();
@@ -49,21 +50,11 @@ export function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">IoT Data Portal</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">{user?.email}</span>
-            <button
-              onClick={logout}
-              className="text-sm text-red-600 hover:text-red-800 cursor-pointer"
-            >
-              Sign out
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppNavbar
+        title="IoT Data Portal"
+        userEmail={user?.email}
+        onLogout={logout}
+      />
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
