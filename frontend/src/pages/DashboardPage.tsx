@@ -48,8 +48,16 @@ export function DashboardPage() {
     setShowAddModal(false);
   };
 
+  const devicesWithLocation = devices.filter((device) => Boolean(device.location?.trim()));
+  const uniqueLocations = new Set(devicesWithLocation.map((device) => device.location!.trim()));
+  const latestDevice = devices.length
+    ? [...devices].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )[0]
+    : null;
+
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="bg-gray-100">
       <AppNavbar
         title="IoT Data Portal"
         userEmail={user?.email}
@@ -58,8 +66,30 @@ export function DashboardPage() {
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+          <div className="rounded-lg border border-gray-200 bg-white p-4">
+            <p className="text-xs uppercase tracking-wide text-gray-500">Total devices</p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">{devices.length}</p>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white p-4">
+            <p className="text-xs uppercase tracking-wide text-gray-500">Locations</p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">{uniqueLocations.size}</p>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white p-4">
+            <p className="text-xs uppercase tracking-wide text-gray-500">Latest added</p>
+            <p className="mt-1 text-sm font-semibold text-gray-900">
+              {latestDevice
+                ? new Date(latestDevice.createdAt).toLocaleDateString()
+                : 'No devices yet'}
+            </p>
+          </div>
+        </section>
+
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">My Devices</h2>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900">My Devices</h2>
+            <p className="text-sm text-gray-500 mt-1">Manage and monitor your connected IoT devices.</p>
+          </div>
           {devices.length != 0 && (
             <button
               onClick={() => setShowAddModal(true)}

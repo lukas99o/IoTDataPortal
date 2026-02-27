@@ -208,7 +208,7 @@ export function DeviceDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="flex items-center justify-center bg-gray-100 py-16">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -216,7 +216,7 @@ export function DeviceDetailPage() {
 
   if (!device) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="flex items-center justify-center bg-gray-100 py-16">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-900">Device not found</h2>
           <Link to="/" className="text-blue-600 hover:text-blue-800 mt-2 block">
@@ -228,7 +228,7 @@ export function DeviceDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="bg-gray-100">
       <AppNavbar
         title={device.name}
         subtitle={device.location ? `📍 ${device.location}` : undefined}
@@ -411,7 +411,7 @@ export function DeviceDetailPage() {
               Latest Measurements
             </h2>
           </div>
-          <div className="max-h-96 overflow-auto">
+          <div className="max-h-150 overflow-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
