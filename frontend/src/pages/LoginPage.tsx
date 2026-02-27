@@ -18,6 +18,10 @@ export function LoginPage() {
   const location = useLocation();
   const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [showResendVerification, setShowResendVerification] = useState(false);
+  const [lastLoginEmail, setLastLoginEmail] = useState('');
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const from = location.state?.from?.pathname || '/';
@@ -45,18 +49,46 @@ export function LoginPage() {
   const onSubmit = async (data: FormData) => {
     try {
       setError(null);
+      setResendMessage(null);
+      setShowResendVerification(false);
+      setLastLoginEmail(data.email);
       setIsSubmitting(true);
       await login(data);
       navigate(from, { replace: true });
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosError = err as { response?: { data?: { message?: string } } };
-        setError(axiosError.response?.data?.message || 'Login failed');
+        const message = axiosError.response?.data?.message || 'Login failed';
+        setError(message);
+        setShowResendVerification(message.toLowerCase().includes('verify your email'));
       } else {
         setError('Login failed');
+        setShowResendVerification(false);
       }
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleResendVerificationEmail = async () => {
+    if (!lastLoginEmail) {
+      setResendMessage('Please enter your email and try signing in again first.');
+      return;
+    }
+
+    try {
+      setIsResendingVerification(true);
+      const response = await authService.resendVerificationEmail({ email: lastLoginEmail });
+      setResendMessage(response.message);
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosError = err as { response?: { data?: { message?: string } } };
+        setResendMessage(axiosError.response?.data?.message || 'Failed to resend verification email');
+      } else {
+        setResendMessage('Failed to resend verification email');
+      }
+    } finally {
+      setIsResendingVerification(false);
     }
   };
 
@@ -78,7 +110,20 @@ export function LoginPage() {
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
+            <p>{error}</p>
+            {showResendVerification && (
+              <div className="mt-3">
+                <button
+                  type="button"
+                  onClick={handleResendVerificationEmail}
+                  disabled={isResendingVerification}
+                  className="text-sm font-medium text-blue-700 hover:text-blue-800 underline disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {isResendingVerification ? 'Sending verification email...' : 'Resend verification email'}
+                </button>
+              </div>
+            )}
+            {resendMessage && <p className="mt-2 text-sm text-blue-700">{resendMessage}</p>}
           </div>
         )}
 

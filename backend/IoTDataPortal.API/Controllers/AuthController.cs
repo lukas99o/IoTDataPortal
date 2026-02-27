@@ -113,6 +113,25 @@ public class AuthController : ControllerBase
         return Ok(new { message = "Email verified successfully. You can now sign in." });
     }
 
+    [HttpPost("resend-verification-email")]
+    public async Task<IActionResult> ResendVerificationEmail([FromBody] ResendVerificationEmailDto dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+
+        if (user != null && !user.EmailConfirmed)
+        {
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var encodedToken = HttpUtility.UrlEncode(token);
+            var encodedUserId = HttpUtility.UrlEncode(user.Id);
+            var frontendBaseUrl = _configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
+            var verificationLink = $"{frontendBaseUrl.TrimEnd('/')}/verify-email?userId={encodedUserId}&token={encodedToken}";
+
+            await _passwordResetEmailService.SendEmailVerificationEmailAsync(user.Email!, verificationLink);
+        }
+
+        return Ok(new { message = "If an unverified account with that email exists, a verification email has been sent." });
+    }
+
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
     {

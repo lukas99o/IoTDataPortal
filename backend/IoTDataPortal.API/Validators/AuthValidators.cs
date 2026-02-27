@@ -80,3 +80,13 @@ public class VerifyEmailDtoValidator : AbstractValidator<VerifyEmailDto>
             .NotEmpty().WithMessage("Verification token is required");
     }
 }
+
+public class ResendVerificationEmailDtoValidator : AbstractValidator<ResendVerificationEmailDto>
+{
+    public ResendVerificationEmailDtoValidator()
+    {
+        RuleFor(x => x.Email)
+            .NotEmpty().WithMessage("Email is required")
+            .EmailAddress().WithMessage("Invalid email format");
+    }
+}

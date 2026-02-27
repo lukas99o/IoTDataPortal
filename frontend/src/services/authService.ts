@@ -28,6 +28,10 @@ export interface VerifyEmailData {
   token: string;
 }
 
+export interface ResendVerificationEmailData {
+  email: string;
+}
+
 export const authService = {
   register: async (data: RegisterData): Promise<RegisterResponse> => {
     const response = await api.post<RegisterResponse>('/auth/register', data);
@@ -51,6 +55,11 @@ export const authService = {
 
   verifyEmail: async (data: VerifyEmailData): Promise<MessageResponse> => {
     const response = await api.post<MessageResponse>('/auth/verify-email', data);
+    return response.data;
+  },
+
+  resendVerificationEmail: async (data: ResendVerificationEmailData): Promise<MessageResponse> => {
+    const response = await api.post<MessageResponse>('/auth/resend-verification-email', data);
     return response.data;
   },
 
