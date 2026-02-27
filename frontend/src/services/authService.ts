@@ -1,5 +1,5 @@
 import api from './api';
-import type { AuthResponse } from '../types';
+import type { AuthResponse, MessageResponse, RegisterResponse } from '../types';
 
 export interface RegisterData {
   email: string;
@@ -23,9 +23,14 @@ export interface ResetPasswordData {
   confirmPassword: string;
 }
 
+export interface VerifyEmailData {
+  userId: string;
+  token: string;
+}
+
 export const authService = {
-  register: async (data: RegisterData): Promise<AuthResponse> => {
-    const response = await api.post<AuthResponse>('/auth/register', data);
+  register: async (data: RegisterData): Promise<RegisterResponse> => {
+    const response = await api.post<RegisterResponse>('/auth/register', data);
     return response.data;
   },
 
@@ -34,13 +39,18 @@ export const authService = {
     return response.data;
   },
 
-  forgotPassword: async (data: ForgotPasswordData): Promise<{ message: string }> => {
-    const response = await api.post<{ message: string }>('/auth/forgot-password', data);
+  forgotPassword: async (data: ForgotPasswordData): Promise<MessageResponse> => {
+    const response = await api.post<MessageResponse>('/auth/forgot-password', data);
     return response.data;
   },
 
-  resetPassword: async (data: ResetPasswordData): Promise<{ message: string }> => {
-    const response = await api.post<{ message: string }>('/auth/reset-password', data);
+  resetPassword: async (data: ResetPasswordData): Promise<MessageResponse> => {
+    const response = await api.post<MessageResponse>('/auth/reset-password', data);
+    return response.data;
+  },
+
+  verifyEmail: async (data: VerifyEmailData): Promise<MessageResponse> => {
+    const response = await api.post<MessageResponse>('/auth/verify-email', data);
     return response.data;
   },
 };

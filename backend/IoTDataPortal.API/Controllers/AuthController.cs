@@ -30,7 +30,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<ActionResult<AuthResponseDto>> Register([FromBody] RegisterDto dto)
+    public async Task<ActionResult<RegisterResponseDto>> Register([FromBody] RegisterDto dto)
     {
         var existingUser = await _userManager.FindByEmailAsync(dto.Email);
         if (existingUser != null)
@@ -51,7 +51,18 @@ public class AuthController : ControllerBase
             return BadRequest(new { message = string.Join(", ", result.Errors.Select(e => e.Description)) });
         }
 
-        return Ok(await GenerateAuthResponse(user));
+        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        var encodedToken = HttpUtility.UrlEncode(token);
+        var encodedUserId = HttpUtility.UrlEncode(user.Id);
+        var frontendBaseUrl = _configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
+        var verificationLink = $"{frontendBaseUrl.TrimEnd('/')}/verify-email?userId={encodedUserId}&token={encodedToken}";
+
+        await _passwordResetEmailService.SendEmailVerificationEmailAsync(user.Email!, verificationLink);
+
+        return Ok(new RegisterResponseDto
+        {
+            Message = "Registration successful. Please verify your email before signing in."
+        });
     }
 
     [HttpPost("login")]
@@ -69,7 +80,31 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Invalid email or password" });
         }
 
+        if (!user.EmailConfirmed)
+        {
+            return Unauthorized(new { message = "Please verify your email before signing in." });
+        }
+
         return Ok(await GenerateAuthResponse(user));
+    }
+
+    [HttpPost("verify-email")]
+    public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto dto)
+    {
+        var user = await _userManager.FindByIdAsync(dto.UserId);
+
+        if (user == null)
+        {
+            return BadRequest(new { message = "Invalid verification link" });
+        }
+
+        var result = await _userManager.ConfirmEmailAsync(user, dto.Token);
+        if (!result.Succeeded)
+        {
+            return BadRequest(new { message = "Invalid or expired verification link" });
+        }
+
+        return Ok(new { message = "Email verified successfully. You can now sign in." });
     }
 
     [HttpPost("forgot-password")]

@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { AuthResponse } from '../types';
-import { authService,  } from '../services/authService';
-import  type { LoginData, RegisterData } from '../services/authService';
+import type { AuthResponse, RegisterResponse } from '../types';
+import { authService } from '../services/authService';
+import type { LoginData, RegisterData } from '../services/authService';
 
 interface User {
   email: string;
@@ -14,7 +14,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (data: LoginData) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  register: (data: RegisterData) => Promise<RegisterResponse>;
   logout: () => void;
 }
 
@@ -47,8 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const register = async (data: RegisterData) => {
-    const response = await authService.register(data);
-    handleAuthResponse(response);
+    return await authService.register(data);
   };
 
   const logout = () => {

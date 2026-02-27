@@ -65,8 +65,9 @@ export function DashboardPage() {
       />
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <section className="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <section className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-lg border border-gray-200 bg-white p-4">
             <p className="text-xs uppercase tracking-wide text-gray-500">Total devices</p>
             <p className="mt-1 text-2xl font-semibold text-gray-900">{devices.length}</p>
@@ -83,9 +84,11 @@ export function DashboardPage() {
                 : 'No devices yet'}
             </p>
           </div>
+          </div>
         </section>
 
-        <div className="flex justify-between items-center mb-6">
+        <div className="rounded-xl border border-gray-200 bg-white px-5 py-4">
+          <div className="flex justify-between items-center">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">My Devices</h2>
             <p className="text-sm text-gray-500 mt-1">Manage and monitor your connected IoT devices.</p>
@@ -98,6 +101,7 @@ export function DashboardPage() {
               Add Device
             </button>
           )}
+          </div>
         </div>
 
         {error && (
@@ -111,7 +115,7 @@ export function DashboardPage() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : devices.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
+          <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
             <svg
               className="mx-auto h-12 w-12 text-gray-400"
               fill="none"
@@ -141,7 +145,7 @@ export function DashboardPage() {
             {devices.map((device) => (
               <div
                 key={device.id}
-                className="bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+                className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
               >
                 <div className="p-6">
                   <div className="flex justify-between items-start">

@@ -68,3 +68,15 @@ public class ResetPasswordDtoValidator : AbstractValidator<ResetPasswordDto>
             .Equal(x => x.NewPassword).WithMessage("Passwords do not match");
     }
 }
+
+public class VerifyEmailDtoValidator : AbstractValidator<VerifyEmailDto>
+{
+    public VerifyEmailDtoValidator()
+    {
+        RuleFor(x => x.UserId)
+            .NotEmpty().WithMessage("User id is required");
+
+        RuleFor(x => x.Token)
+            .NotEmpty().WithMessage("Verification token is required");
+    }
+}

@@ -4,6 +4,14 @@ export interface AuthResponse {
   expiration: string;
 }
 
+export interface RegisterResponse {
+  message: string;
+}
+
+export interface MessageResponse {
+  message: string;
+}
+
 export interface Device {
   id: string;
   name: string;

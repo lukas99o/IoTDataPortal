@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const schema = yup.object({
@@ -22,9 +22,9 @@ const schema = yup.object({
 type FormData = yup.InferType<typeof schema>;
 
 export function RegisterPage() {
-  const navigate = useNavigate();
   const { register: registerUser } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -38,9 +38,10 @@ export function RegisterPage() {
   const onSubmit = async (data: FormData) => {
     try {
       setError(null);
+      setSuccessMessage(null);
       setIsSubmitting(true);
-      await registerUser(data);
-      navigate('/', { replace: true });
+      const response = await registerUser(data);
+      setSuccessMessage(response.message);
     } catch (err: unknown) {
       if (err && typeof err === 'object' && 'response' in err) {
         const axiosError = err as { response?: { data?: { message?: string } } };
@@ -68,6 +69,12 @@ export function RegisterPage() {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
             {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded">
+            {successMessage}
           </div>
         )}
 
