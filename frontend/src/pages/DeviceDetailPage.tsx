@@ -17,7 +17,7 @@ import { deviceService } from '../services/deviceService';
 import { measurementService } from '../services/measurementService';
 import { AppNavbar } from '../components/AppNavbar';
 
-type TimeFilter = '24h' | '7d';
+type TimeFilter = '24h' | '7d' | '1m' | '1y' | 'all';
 
 export function DeviceDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -48,19 +48,27 @@ export function DeviceDetailPage() {
     if (!id) return;
     try {
       const now = new Date();
-      const from = new Date();
+      let from: Date | undefined = new Date();
+      const to: Date | undefined = now;
+
       if (timeFilter === '24h') {
-        from.setHours(from.getHours() - 24);
-      } else {
-        from.setDate(from.getDate() - 7);
+        from?.setHours(from.getHours() - 24);
+      } else if (timeFilter === '7d') {
+        from?.setDate(from.getDate() - 7);
+      } else if (timeFilter === '1m') {
+        from?.setMonth(from.getMonth() - 1);
+      } else if (timeFilter === '1y') {
+        from?.setFullYear(from.getFullYear() - 1);
+      } else if (timeFilter === 'all') {
+        from = undefined;
       }
 
       const data = await measurementService.getByDevice(
         id,
-        from.toISOString(),
-        now.toISOString()
+        from?.toISOString(),
+        to?.toISOString()
       );
-      setMeasurements(data.reverse()); // Oldest first for chart
+      setMeasurements(data);
     } catch (err) {
       setError('Failed to load measurements');
       console.error(err);
@@ -159,19 +167,44 @@ export function DeviceDetailPage() {
   };
 
   // Format chart data
-  const chartData = measurements.map((m) => ({
-    time: new Date(m.timestamp).toLocaleTimeString('sv-SE', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
-    fullTime: new Date(m.timestamp).toLocaleString('sv-SE'),
+  const sortedMeasurements = [...measurements].sort(
+    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+  );
+
+  const chartData = sortedMeasurements.map((m) => ({
+    timestampMs: new Date(m.timestamp).getTime(),
     temperature: m.temperature,
     humidity: m.humidity,
     energyUsage: m.energyUsage,
   }));
 
   // Latest measurements for table
-  const latestMeasurements = [...measurements].reverse().slice(0, 10);
+  const latestMeasurements = [...measurements].sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
+
+  const formatXAxisTick = (value: number) => {
+    const date = new Date(value);
+
+    if (timeFilter === '24h') {
+      return date.toLocaleTimeString('sv-SE', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+
+    if (timeFilter === '1y' || timeFilter === 'all') {
+      return date.toLocaleDateString('sv-SE', {
+        year: '2-digit',
+        month: '2-digit',
+      });
+    }
+
+    return date.toLocaleDateString('sv-SE', {
+      month: '2-digit',
+      day: '2-digit',
+    });
+  };
 
   if (loading) {
     return (
@@ -248,6 +281,36 @@ export function DeviceDetailPage() {
               >
                 7 Days
               </button>
+              <button
+                onClick={() => setTimeFilter('1m')}
+                className={`px-4 py-2 rounded-md text-sm font-medium ${
+                  timeFilter === '1m'
+                    ? 'bg-blue-600 text-white cursor-pointer'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
+                }`}
+              >
+                1 Month
+              </button>
+              <button
+                onClick={() => setTimeFilter('1y')}
+                className={`px-4 py-2 rounded-md text-sm font-medium ${
+                  timeFilter === '1y'
+                    ? 'bg-blue-600 text-white cursor-pointer'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
+                }`}
+              >
+                1 Year
+              </button>
+              <button
+                onClick={() => setTimeFilter('all')}
+                className={`px-4 py-2 rounded-md text-sm font-medium ${
+                  timeFilter === 'all'
+                    ? 'bg-blue-600 text-white cursor-pointer'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
+                }`}
+              >
+                All Time
+              </button>
             </div>
             <div className="flex gap-2">
               <button
@@ -266,6 +329,7 @@ export function DeviceDetailPage() {
               </button>
             </div>
           </div>
+
         </div>
 
         {/* Real-time status */}
@@ -294,16 +358,18 @@ export function DeviceDetailPage() {
               <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
-                  dataKey="time"
+                  type="number"
+                  scale="time"
+                  domain={['dataMin', 'dataMax']}
+                  dataKey="timestampMs"
                   tick={{ fontSize: 12 }}
-                  interval="preserveStartEnd"
+                  tickFormatter={formatXAxisTick}
+                  minTickGap={32}
                 />
                 <YAxis yAxisId="temp" orientation="left" domain={['auto', 'auto']} />
                 <YAxis yAxisId="humidity" orientation="right" domain={[0, 100]} />
                 <Tooltip
-                  labelFormatter={(_, payload) =>
-                    payload?.[0]?.payload?.fullTime || ''
-                  }
+                  labelFormatter={(value) => new Date(Number(value)).toLocaleString('sv-SE')}
                 />
                 <Legend />
                 <Line
@@ -345,7 +411,7 @@ export function DeviceDetailPage() {
               Latest Measurements
             </h2>
           </div>
-          <div className="overflow-x-auto">
+          <div className="max-h-96 overflow-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>

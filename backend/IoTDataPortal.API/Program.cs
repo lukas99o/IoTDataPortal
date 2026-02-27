@@ -3,6 +3,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using IoTDataPortal.API.Hubs;
 using IoTDataPortal.API.Middleware;
+using IoTDataPortal.API.Services;
 using IoTDataPortal.API.Validators;
 using IoTDataPortal.Models.Data;
 using IoTDataPortal.Models.Entities;
@@ -79,6 +80,9 @@ builder.Services.AddValidatorsFromAssemblyContaining<RegisterDtoValidator>();
 
 // Add Controllers
 builder.Services.AddControllers();
+
+// Add services
+builder.Services.AddScoped<IPasswordResetEmailService, PasswordResetEmailService>();
 
 // Add SignalR
 builder.Services.AddSignalR();

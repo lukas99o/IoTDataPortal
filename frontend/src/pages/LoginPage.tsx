@@ -112,6 +112,15 @@ export function LoginPage() {
 
           <div className="text-center">
             <Link
+              to="/forgot-password"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
+              Forgot password?
+            </Link>
+          </div>
+
+          <div className="text-center">
+            <Link
               to="/register"
               className="font-medium text-blue-600 hover:text-blue-500"
             >

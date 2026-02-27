@@ -1,6 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Web;
 using System.Text;
+using IoTDataPortal.API.Services;
 using IoTDataPortal.Models.DTOs;
 using IoTDataPortal.Models.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -15,11 +17,16 @@ public class AuthController : ControllerBase
 {
     private readonly UserManager<User> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly IPasswordResetEmailService _passwordResetEmailService;
 
-    public AuthController(UserManager<User> userManager, IConfiguration configuration)
+    public AuthController(
+        UserManager<User> userManager,
+        IConfiguration configuration,
+        IPasswordResetEmailService passwordResetEmailService)
     {
         _userManager = userManager;
         _configuration = configuration;
+        _passwordResetEmailService = passwordResetEmailService;
     }
 
     [HttpPost("register")]
@@ -63,6 +70,44 @@ public class AuthController : ControllerBase
         }
 
         return Ok(await GenerateAuthResponse(user));
+    }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+
+        if (user != null)
+        {
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var encodedToken = HttpUtility.UrlEncode(token);
+            var encodedEmail = HttpUtility.UrlEncode(user.Email);
+            var frontendBaseUrl = _configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
+            var resetLink = $"{frontendBaseUrl.TrimEnd('/')}/reset-password?email={encodedEmail}&token={encodedToken}";
+
+            await _passwordResetEmailService.SendResetPasswordEmailAsync(dto.Email, resetLink);
+        }
+
+        return Ok(new { message = "If an account with that email exists, a reset link has been sent." });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
+    {
+        var user = await _userManager.FindByEmailAsync(dto.Email);
+
+        if (user == null)
+        {
+            return BadRequest(new { message = "Invalid or expired reset link" });
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
+        if (!result.Succeeded)
+        {
+            return BadRequest(new { message = string.Join(", ", result.Errors.Select(e => e.Description)) });
+        }
+
+        return Ok(new { message = "Password has been reset successfully" });
     }
 
     private async Task<AuthResponseDto> GenerateAuthResponse(User user)
