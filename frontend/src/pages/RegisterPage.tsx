@@ -66,6 +66,10 @@ export function RegisterPage() {
           </p>
         </div>
 
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded text-sm">
+          Heads up: the API is hosted on Azure free tier. If it has been in standby, startup can take around 1 minute.
+        </div>
+
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
             {error}

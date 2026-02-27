@@ -88,6 +88,12 @@ public class AuthController : ControllerBase
         return Ok(await GenerateAuthResponse(user));
     }
 
+    [HttpGet("wake-up")]
+    public IActionResult WakeUp()
+    {
+        return Ok(new { message = "API is awake" });
+    }
+
     [HttpPost("verify-email")]
     public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto dto)
     {

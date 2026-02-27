@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { authService } from '../services/authService';
 
 const schema = yup.object({
   email: yup.string().email('Invalid email').required('Email is required'),
@@ -28,6 +29,18 @@ export function LoginPage() {
   } = useForm<FormData>({
     resolver: yupResolver(schema),
   });
+
+  useEffect(() => {
+    const wakeUpApi = async () => {
+      try {
+        await authService.wakeUp();
+      } catch {
+        // Silent fail; page remains usable while API is waking up.
+      }
+    };
+
+    wakeUpApi();
+  }, []);
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -57,6 +70,10 @@ export function LoginPage() {
           <p className="mt-2 text-center text-sm text-gray-600">
             Sign in to your account
           </p>
+        </div>
+
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded text-sm">
+          Heads up: the API is hosted on Azure free tier. If it has been in standby, startup can take around 1 minute.
         </div>
 
         {error && (

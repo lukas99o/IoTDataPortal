@@ -53,4 +53,8 @@ export const authService = {
     const response = await api.post<MessageResponse>('/auth/verify-email', data);
     return response.data;
   },
+
+  wakeUp: async (): Promise<void> => {
+    await api.get('/auth/wake-up');
+  },
 };
