@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { HubConnection, HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import {
   LineChart,
@@ -22,7 +22,6 @@ type TimeFilter = '24h' | '7d' | '1m' | '1y' | 'all';
 
 export function DeviceDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { user, logout } = useAuth();
   
   const [device, setDevice] = useState<Device | null>(null);
@@ -167,19 +166,6 @@ export function DeviceDetailPage() {
     }
   };
 
-  const handleDeleteDevice = async () => {
-    if (!id) return;
-    if (!confirm('Are you sure you want to delete this device and all its data?')) return;
-    
-    try {
-      await deviceService.delete(id);
-      navigate('/');
-    } catch (err) {
-      setError('Failed to delete device');
-      console.error(err);
-    }
-  };
-
   // Format chart data
   const sortedMeasurements = [...measurements].sort(
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
@@ -254,14 +240,7 @@ export function DeviceDetailPage() {
         backLabel="Dashboard"
         userEmail={user?.email}
         onLogout={logout}
-      >
-        <button
-          onClick={handleDeleteDevice}
-          className="px-3 py-2 text-sm font-medium text-red-700 bg-red-50 rounded-md hover:bg-red-100 transition-colors cursor-pointer"
-        >
-          Delete Device
-        </button>
-      </AppNavbar>
+      />
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
