@@ -1,24 +1,21 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 const {
   getByIdMock,
-  deleteMock,
   getByDeviceMock,
   simulateMock,
   generateHistoricalMock,
-  navigateMock,
   connectionOnMock,
   connectionInvokeMock,
   connectionStartMock,
   connectionStopMock,
 } = vi.hoisted(() => ({
   getByIdMock: vi.fn(),
-  deleteMock: vi.fn(),
   getByDeviceMock: vi.fn(),
   simulateMock: vi.fn(),
   generateHistoricalMock: vi.fn(),
-  navigateMock: vi.fn(),
   connectionOnMock: vi.fn(),
   connectionInvokeMock: vi.fn(),
   connectionStartMock: vi.fn(),
@@ -35,7 +32,6 @@ vi.mock('../contexts/AuthContext', () => ({
 vi.mock('../services/deviceService', () => ({
   deviceService: {
     getById: getByIdMock,
-    delete: deleteMock,
   },
 }));
 
@@ -46,14 +42,6 @@ vi.mock('../services/measurementService', () => ({
     generateHistorical: generateHistoricalMock,
   },
 }));
-
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
-  return {
-    ...actual,
-    useNavigate: () => navigateMock,
-  };
-});
 
 vi.mock('@microsoft/signalr', () => {
   class HubConnectionBuilder {
@@ -121,7 +109,6 @@ describe('DeviceDetailPage', () => {
     getByDeviceMock.mockResolvedValue([]);
     simulateMock.mockResolvedValue([]);
     generateHistoricalMock.mockResolvedValue(undefined);
-    deleteMock.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -130,11 +117,13 @@ describe('DeviceDetailPage', () => {
 
   function renderPage() {
     return render(
-      <MemoryRouter initialEntries={['/devices/device-1']}>
-        <Routes>
-          <Route path="/devices/:id" element={<DeviceDetailPage />} />
-        </Routes>
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter initialEntries={['/devices/device-1']}>
+          <Routes>
+            <Route path="/devices/:id" element={<DeviceDetailPage />} />
+          </Routes>
+        </MemoryRouter>
+      </ThemeProvider>
     );
   }
 
@@ -166,16 +155,10 @@ describe('DeviceDetailPage', () => {
     });
   });
 
-  it('deletes device and navigates back to dashboard', async () => {
+  it('does not render delete device action', async () => {
     renderPage();
 
     expect(await screen.findByText('Kitchen Sensor')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Delete Device' }));
-
-    await waitFor(() => {
-      expect(deleteMock).toHaveBeenCalledWith('device-1');
-      expect(navigateMock).toHaveBeenCalledWith('/');
-    });
+    expect(screen.queryByRole('button', { name: 'Delete Device' })).not.toBeInTheDocument();
   });
 });

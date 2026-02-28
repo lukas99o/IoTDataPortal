@@ -4,6 +4,7 @@ import { LoginPage } from './LoginPage';
 import { RegisterPage } from './RegisterPage';
 import { ForgotPasswordPage } from './ForgotPasswordPage';
 import { ResetPasswordPage } from './ResetPasswordPage';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 const { loginMock, registerMock, forgotPasswordMock, resetPasswordMock, navigateMock } = vi.hoisted(() => ({
   loginMock: vi.fn(),
@@ -42,9 +43,11 @@ describe('Auth pages', () => {
 
   it('shows validation errors on login submit with empty fields', async () => {
     render(
-      <MemoryRouter>
-        <LoginPage />
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <LoginPage />
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
@@ -57,9 +60,11 @@ describe('Auth pages', () => {
     loginMock.mockResolvedValue(undefined);
 
     render(
-      <MemoryRouter>
-        <LoginPage />
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <LoginPage />
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     fireEvent.change(screen.getByPlaceholderText('Email address'), {
@@ -81,9 +86,11 @@ describe('Auth pages', () => {
     loginMock.mockRejectedValue({ response: { data: { message: 'Invalid email or password' } } });
 
     render(
-      <MemoryRouter>
-        <LoginPage />
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <LoginPage />
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     fireEvent.change(screen.getByPlaceholderText('Email address'), {
@@ -102,9 +109,11 @@ describe('Auth pages', () => {
     registerMock.mockResolvedValue({ message: 'Registration successful. Please verify your email before signing in.' });
 
     render(
-      <MemoryRouter>
-        <RegisterPage />
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <RegisterPage />
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     fireEvent.change(screen.getByPlaceholderText('Email address'), {
@@ -129,9 +138,11 @@ describe('Auth pages', () => {
     forgotPasswordMock.mockResolvedValue({ message: 'If an account with that email exists, a reset link has been sent.' });
 
     render(
-      <MemoryRouter>
-        <ForgotPasswordPage />
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <ForgotPasswordPage />
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     fireEvent.change(screen.getByPlaceholderText('Email address'), {
@@ -146,9 +157,11 @@ describe('Auth pages', () => {
     forgotPasswordMock.mockRejectedValue({ response: { data: { message: 'Rate limit exceeded' } } });
 
     render(
-      <MemoryRouter>
-        <ForgotPasswordPage />
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <ForgotPasswordPage />
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     fireEvent.change(screen.getByPlaceholderText('Email address'), {
@@ -161,9 +174,11 @@ describe('Auth pages', () => {
 
   it('keeps reset form disabled with invalid query string', () => {
     render(
-      <MemoryRouter initialEntries={['/reset-password']}>
-        <ResetPasswordPage />
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter initialEntries={['/reset-password']}>
+          <ResetPasswordPage />
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     expect(screen.getByText('Invalid or expired reset link')).toBeInTheDocument();
@@ -174,9 +189,11 @@ describe('Auth pages', () => {
     resetPasswordMock.mockResolvedValue({ message: 'Password has been reset successfully' });
 
     render(
-      <MemoryRouter initialEntries={['/reset-password?email=user%40example.com&token=abc123']}>
-        <ResetPasswordPage />
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter initialEntries={['/reset-password?email=user%40example.com&token=abc123']}>
+          <ResetPasswordPage />
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     fireEvent.change(screen.getByPlaceholderText('New password'), {

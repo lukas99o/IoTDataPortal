@@ -1,18 +1,21 @@
 import { MemoryRouter } from 'react-router-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { AppNavbar } from './AppNavbar';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 describe('AppNavbar', () => {
   it('renders title, subtitle and user email', () => {
     render(
-      <MemoryRouter>
-        <AppNavbar
-          title="SensorScope"
-          subtitle="My subtitle"
-          userEmail="test@example.com"
-          onLogout={() => {}}
-        />
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <AppNavbar
+            title="SensorScope"
+            subtitle="My subtitle"
+            userEmail="test@example.com"
+            onLogout={() => {}}
+          />
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     expect(screen.getByRole('heading', { name: 'SensorScope' })).toBeInTheDocument();
@@ -24,9 +27,11 @@ describe('AppNavbar', () => {
     const onLogout = vi.fn();
 
     render(
-      <MemoryRouter>
-        <AppNavbar title="SensorScope" onLogout={onLogout} />
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <AppNavbar title="SensorScope" onLogout={onLogout} />
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     fireEvent.click(screen.getByRole('button', { name: /log out/i }));
@@ -35,9 +40,11 @@ describe('AppNavbar', () => {
 
   it('renders back link when backTo is provided', () => {
     render(
-      <MemoryRouter>
-        <AppNavbar title="SensorScope" backTo="/" backLabel="Dashboard" onLogout={() => {}} />
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <AppNavbar title="SensorScope" backTo="/" backLabel="Dashboard" onLogout={() => {}} />
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     expect(screen.getByRole('link', { name: '← Dashboard' })).toBeInTheDocument();

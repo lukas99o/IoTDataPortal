@@ -208,7 +208,7 @@ export function DeviceDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center bg-gray-100 py-16">
+      <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-950 py-16">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -216,10 +216,10 @@ export function DeviceDetailPage() {
 
   if (!device) {
     return (
-      <div className="flex items-center justify-center bg-gray-100 py-16">
+      <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-950 py-16">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900">Device not found</h2>
-          <Link to="/" className="text-blue-600 hover:text-blue-800 mt-2 block">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Device not found</h2>
+          <Link to="/" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mt-2 block">
             Back to Dashboard
           </Link>
         </div>
@@ -228,7 +228,7 @@ export function DeviceDetailPage() {
   }
 
   return (
-    <div className="bg-gray-100">
+    <div className="bg-gray-100 dark:bg-gray-950">
       <Seo
         title={`${device.name} | IoT Data Portal`}
         description={`View live and historical measurements for ${device.name}${device.location ? ` in ${device.location}` : ''}.`}
@@ -245,26 +245,26 @@ export function DeviceDetailPage() {
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4">
             {error}
-            <button onClick={() => setError(null)} className="ml-4 text-red-900 cursor-pointer">
+            <button onClick={() => setError(null)} className="ml-4 text-red-900 dark:text-red-200 cursor-pointer">
               ×
             </button>
           </div>
         )}
 
         {/* Controls */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-4 mb-6 border border-gray-200 dark:border-gray-800">
           <div className="flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-center">
             <div className="w-full min-w-0">
-              <div className="text-sm text-gray-600 mb-2">Time range:</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Time range:</div>
               <div className="flex gap-2 overflow-x-auto pb-3 lg:pb-1 whitespace-nowrap">
               <button
                 onClick={() => setTimeFilter('24h')}
                 className={`px-3 py-2 rounded-md text-sm font-medium ${
                   timeFilter === '24h'
                     ? 'bg-blue-600 text-white cursor-pointer'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer'
                 }`}
               >
                 24 Hours
@@ -274,7 +274,7 @@ export function DeviceDetailPage() {
                 className={`px-3 py-2 rounded-md text-sm font-medium ${
                   timeFilter === '7d'
                     ? 'bg-blue-600 text-white cursor-pointer'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer'
                 }`}
               >
                 7 Days
@@ -284,7 +284,7 @@ export function DeviceDetailPage() {
                 className={`px-3 py-2 rounded-md text-sm font-medium ${
                   timeFilter === '1m'
                     ? 'bg-blue-600 text-white cursor-pointer'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer'
                 }`}
               >
                 1 Month
@@ -294,7 +294,7 @@ export function DeviceDetailPage() {
                 className={`px-3 py-2 rounded-md text-sm font-medium ${
                   timeFilter === '1y'
                     ? 'bg-blue-600 text-white cursor-pointer'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer'
                 }`}
               >
                 1 Year
@@ -304,7 +304,7 @@ export function DeviceDetailPage() {
                 className={`px-3 py-2 rounded-md text-sm font-medium ${
                   timeFilter === 'all'
                     ? 'bg-blue-600 text-white cursor-pointer'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer'
                 }`}
               >
                 All Time
@@ -338,18 +338,18 @@ export function DeviceDetailPage() {
               connection?.state === 'Connected' ? 'bg-green-500' : 'bg-red-500'
             }`}
           ></div>
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-gray-600 dark:text-gray-400">
             {connection?.state === 'Connected' ? 'Real-time updates active' : 'Connecting...'}
           </span>
         </div>
 
         {/* Chart */}
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow p-4 sm:p-6 mb-6 border border-gray-200 dark:border-gray-800">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Measurement History
           </h2>
           {chartData.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               No measurements yet. Click "Simulate Measurement" or "Generate History" to add data.
             </div>
           ) : (
@@ -427,41 +427,41 @@ export function DeviceDetailPage() {
         </div>
 
         {/* Latest Measurements Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-gray-800">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               Latest Measurements
             </h2>
           </div>
           <div className="max-h-150 overflow-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-800/60">
                 <tr>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Timestamp
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Temperature
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Humidity
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Energy Usage
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
                 {latestMeasurements.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-3 sm:px-6 py-4 text-center text-gray-500">
+                    <td colSpan={4} className="px-3 sm:px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                       No measurements yet
                     </td>
                   </tr>
                 ) : (
                   latestMeasurements.map((m) => (
                     <tr key={m.id}>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                         {new Date(m.timestamp).toLocaleString('sv-SE')}
                       </td>
                       <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">

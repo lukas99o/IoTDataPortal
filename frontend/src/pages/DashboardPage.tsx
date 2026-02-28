@@ -58,7 +58,7 @@ export function DashboardPage() {
     : null;
 
   return (
-    <div className="bg-gray-100">
+    <div className="bg-gray-100 dark:bg-gray-950">
       <Seo
         title="Dashboard | IoT Data Portal"
         description="Monitor your connected IoT devices, view locations, and manage device details from one dashboard."
@@ -71,19 +71,19 @@ export function DashboardPage() {
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <section className="rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
+        <section className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 sm:p-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <p className="text-xs uppercase tracking-wide text-gray-500">Total devices</p>
-            <p className="mt-1 text-2xl font-semibold text-gray-900">{devices.length}</p>
+          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Total devices</p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{devices.length}</p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <p className="text-xs uppercase tracking-wide text-gray-500">Locations</p>
-            <p className="mt-1 text-2xl font-semibold text-gray-900">{uniqueLocations.size}</p>
+          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Locations</p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900 dark:text-gray-100">{uniqueLocations.size}</p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
-            <p className="text-xs uppercase tracking-wide text-gray-500">Latest added</p>
-            <p className="mt-1 text-sm font-semibold text-gray-900">
+          <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4">
+            <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Latest added</p>
+            <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">
               {latestDevice
                 ? new Date(latestDevice.createdAt).toLocaleDateString()
                 : 'No devices yet'}
@@ -92,11 +92,11 @@ export function DashboardPage() {
           </div>
         </section>
 
-        <div className="rounded-xl border border-gray-200 bg-white px-5 py-4">
+        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-5 py-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">My Devices</h2>
-            <p className="text-sm text-gray-500 mt-1">Manage and monitor your connected IoT devices.</p>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">My Devices</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage and monitor your connected IoT devices.</p>
           </div>
           {devices.length != 0 && (
             <button
@@ -110,7 +110,7 @@ export function DashboardPage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
@@ -120,9 +120,9 @@ export function DashboardPage() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         ) : devices.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+          <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
             <svg
-              className="mx-auto h-12 w-12 text-gray-400"
+              className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -134,8 +134,8 @@ export function DashboardPage() {
                 d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
               />
             </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No devices</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No devices</h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Get started by adding your first IoT device.
             </p>
             <button
@@ -150,16 +150,16 @@ export function DashboardPage() {
             {devices.map((device) => (
               <div
                 key={device.id}
-                className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+                className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 transition-colors"
               >
                 <div className="p-6">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="text-lg font-medium text-gray-900">
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                         {device.name}
                       </h3>
                       {device.location && (
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                           📍 {device.location}
                         </p>
                       )}
@@ -184,12 +184,12 @@ export function DashboardPage() {
                       </svg>
                     </button>
                   </div>
-                  <p className="text-xs text-gray-400 mt-2">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
                     Created: {new Date(device.createdAt).toLocaleDateString()}
                   </p>
                   <Link
                     to={`/devices/${device.id}`}
-                    className="mt-4 inline-block w-full text-center bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors"
+                    className="mt-4 inline-block w-full text-center bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                   >
                     View Details
                   </Link>

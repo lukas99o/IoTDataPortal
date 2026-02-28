@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { Seo } from '../components/Seo';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
@@ -40,14 +41,17 @@ export function VerifyEmailPage() {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8 relative">
       <Seo
         title="Verify Email | IoT Data Portal"
         description="Verify your email address to activate your IoT Data Portal account."
         noindex
       />
-      <div className="max-w-md w-full bg-white rounded-lg border border-gray-200 shadow-sm p-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900">Email verification</h1>
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm p-8 text-center">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Email verification</h1>
 
         {isLoading && (
           <div className="mt-6 flex justify-center">
@@ -56,13 +60,13 @@ export function VerifyEmailPage() {
         )}
 
         {!isLoading && successMessage && (
-          <p className="mt-4 text-green-700 bg-green-50 border border-green-200 rounded-md px-4 py-3">
+          <p className="mt-4 text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800 rounded-md px-4 py-3">
             {successMessage}
           </p>
         )}
 
         {!isLoading && error && (
-          <p className="mt-4 text-red-700 bg-red-50 border border-red-200 rounded-md px-4 py-3">
+          <p className="mt-4 text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-md px-4 py-3">
             {error}
           </p>
         )}

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { DashboardPage } from './DashboardPage';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 const { getAllMock, deleteMock, logoutMock } = vi.hoisted(() => ({
   getAllMock: vi.fn(),
@@ -51,9 +52,11 @@ describe('DashboardPage', () => {
     getAllMock.mockResolvedValue([]);
 
     render(
-      <MemoryRouter>
-        <DashboardPage />
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     expect(await screen.findByText('No devices')).toBeInTheDocument();
@@ -75,9 +78,11 @@ describe('DashboardPage', () => {
     deleteMock.mockResolvedValue(undefined);
 
     render(
-      <MemoryRouter>
-        <DashboardPage />
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter>
+          <DashboardPage />
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
     expect(await screen.findByText('Kitchen Sensor')).toBeInTheDocument();
