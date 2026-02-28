@@ -93,7 +93,7 @@ export function LoginPage() {
       setIsResendingVerification(false);
     }
   };
-
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950 py-12 px-4 sm:px-6 lg:px-8 relative">
       <Seo
@@ -127,7 +127,7 @@ export function LoginPage() {
                   type="button"
                   onClick={handleResendVerificationEmail}
                   disabled={isResendingVerification}
-                  className="text-sm font-medium text-blue-700 hover:text-blue-800 underline disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  className="text-sm font-medium dark:text-blue-300 hover:dark:text-blue-400 text-blue-700 hover:text-blue-800 underline disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {isResendingVerification ? 'Sending verification email...' : 'Resend verification email'}
                 </button>
