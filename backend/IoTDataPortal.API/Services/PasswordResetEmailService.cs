@@ -53,7 +53,7 @@ public class PasswordResetEmailService : IPasswordResetEmailService
             Subject = "Reset your IoT Data Portal password",
             Body = $"""
                 <p>You requested a password reset for your IoT Data Portal account.</p>
-                <p><a href=\"{resetLink}\">Click here to reset your password</a></p>
+                <p><a href="{resetLink}">Click here to reset your password</a></p>
                 <p>If the button does not work, copy and paste this URL into your browser:</p>
                 <p>{resetLink}</p>
                 """,
@@ -104,7 +104,7 @@ public class PasswordResetEmailService : IPasswordResetEmailService
             Subject = "Verify your IoT Data Portal email",
             Body = $"""
                 <p>Welcome to IoT Data Portal.</p>
-                <p><a href=\"{verificationLink}\">Click here to verify your email address</a></p>
+                <p><a href="{verificationLink}">Click here to verify your email address</a></p>
                 <p>If the button does not work, copy and paste this URL into your browser:</p>
                 <p>{verificationLink}</p>
                 """,

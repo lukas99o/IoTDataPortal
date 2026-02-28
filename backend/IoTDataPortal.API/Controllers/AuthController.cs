@@ -54,8 +54,7 @@ public class AuthController : ControllerBase
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
         var encodedToken = HttpUtility.UrlEncode(token);
         var encodedUserId = HttpUtility.UrlEncode(user.Id);
-        var frontendBaseUrl = _configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
-        var verificationLink = $"{frontendBaseUrl.TrimEnd('/')}/verify-email?userId={encodedUserId}&token={encodedToken}";
+        var verificationLink = BuildFrontendUrl("verify-email", $"userId={encodedUserId}&token={encodedToken}");
 
         await _passwordResetEmailService.SendEmailVerificationEmailAsync(user.Email!, verificationLink);
 
@@ -123,8 +122,7 @@ public class AuthController : ControllerBase
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             var encodedToken = HttpUtility.UrlEncode(token);
             var encodedUserId = HttpUtility.UrlEncode(user.Id);
-            var frontendBaseUrl = _configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
-            var verificationLink = $"{frontendBaseUrl.TrimEnd('/')}/verify-email?userId={encodedUserId}&token={encodedToken}";
+            var verificationLink = BuildFrontendUrl("verify-email", $"userId={encodedUserId}&token={encodedToken}");
 
             await _passwordResetEmailService.SendEmailVerificationEmailAsync(user.Email!, verificationLink);
         }
@@ -142,8 +140,7 @@ public class AuthController : ControllerBase
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var encodedToken = HttpUtility.UrlEncode(token);
             var encodedEmail = HttpUtility.UrlEncode(user.Email);
-            var frontendBaseUrl = _configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
-            var resetLink = $"{frontendBaseUrl.TrimEnd('/')}/reset-password?email={encodedEmail}&token={encodedToken}";
+            var resetLink = BuildFrontendUrl("reset-password", $"email={encodedEmail}&token={encodedToken}");
 
             await _passwordResetEmailService.SendResetPasswordEmailAsync(dto.Email, resetLink);
         }
@@ -207,5 +204,15 @@ public class AuthController : ControllerBase
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    private string BuildFrontendUrl(string path, string queryString)
+    {
+        var configuredBaseUrl = _configuration["Frontend:BaseUrl"];
+        var sanitizedBaseUrl = string.IsNullOrWhiteSpace(configuredBaseUrl)
+            ? "http://localhost:5173"
+            : configuredBaseUrl.Trim().Trim('"', '\'').TrimEnd('/');
+
+        return $"{sanitizedBaseUrl}/{path}?{queryString}";
     }
 }
