@@ -36,17 +36,19 @@ export function AppNavbar({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          <div className="flex items-center justify-between gap-2 w-full sm:w-auto sm:justify-end sm:flex-wrap">
             {userEmail && (
               <span className="text-sm text-gray-600 max-w-full truncate sm:max-w-55">{userEmail}</span>
             )}
-            {children}
-            <button
-              onClick={onLogout}
-              className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer"
-            >
-              Log out
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              {children}
+              <button
+                onClick={onLogout}
+                className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors cursor-pointer"
+              >
+                Log out
+              </button>
+            </div>
           </div>
         </div>
       </div>
