@@ -64,7 +64,9 @@ export function DashboardPage() {
         description="Monitor your connected IoT devices, view locations, and manage device details from one dashboard."
       />
       <AppNavbar
-        title="IoT Data Portal"
+        title="Data Portal"
+        logoSrc="/IoT.png"
+        logoAlt="IoT"
         userEmail={user?.email}
         onLogout={logout}
       />

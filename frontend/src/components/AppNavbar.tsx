@@ -4,6 +4,8 @@ import { ThemeToggle } from './ThemeToggle';
 
 interface AppNavbarProps {
   title: string;
+  logoSrc?: string;
+  logoAlt?: string;
   subtitle?: string;
   backTo?: string;
   backLabel?: string;
@@ -14,6 +16,8 @@ interface AppNavbarProps {
 
 export function AppNavbar({
   title,
+  logoSrc,
+  logoAlt = 'Logo',
   subtitle,
   backTo,
   backLabel = 'Back',
@@ -32,7 +36,18 @@ export function AppNavbar({
               </Link>
             )}
             <div className={`min-w-0 ${backTo ? 'text-right sm:text-left' : ''}`}>
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">{title}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
+                <span className="inline-flex items-center gap-2 align-middle">
+                  {logoSrc && (
+                    <img
+                      src={logoSrc}
+                      alt={logoAlt}
+                      className="h-7 w-7 sm:h-12 sm:w-12 object-contain"
+                    />
+                  )}
+                  <span>{title}</span>
+                </span>
+              </h1>
               {subtitle && <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{subtitle}</p>}
             </div>
           </div>

@@ -7,7 +7,7 @@ interface SeoProps {
 }
 
 const APP_NAME = 'IoT Data Portal';
-const DEFAULT_OG_IMAGE = '/IoT2.png';
+const DEFAULT_OG_IMAGE = '/IoT.png';
 
 function upsertMeta(selector: string, attributes: Record<string, string>) {
   let element = document.head.querySelector(selector) as HTMLMetaElement | null;
