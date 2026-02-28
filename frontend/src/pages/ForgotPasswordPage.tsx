@@ -4,6 +4,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Link } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { Seo } from '../components/Seo';
 
 const schema = yup.object({
   email: yup.string().email('Invalid email').required('Email is required'),
@@ -46,6 +47,11 @@ export function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <Seo
+        title="Forgot Password | IoT Data Portal"
+        description="Request a password reset link for your IoT Data Portal account."
+        noindex
+      />
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">

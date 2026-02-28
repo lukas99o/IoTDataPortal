@@ -5,6 +5,7 @@ import * as yup from 'yup';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/authService';
+import { Seo } from '../components/Seo';
 
 const schema = yup.object({
   email: yup.string().email('Invalid email').required('Email is required'),
@@ -94,6 +95,11 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <Seo
+        title="Sign In | IoT Data Portal"
+        description="Sign in to the IoT Data Portal to monitor devices and view real-time and historical measurements."
+        noindex
+      />
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">

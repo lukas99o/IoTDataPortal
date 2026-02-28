@@ -16,6 +16,7 @@ import type { Device, Measurement } from '../types';
 import { deviceService } from '../services/deviceService';
 import { measurementService } from '../services/measurementService';
 import { AppNavbar } from '../components/AppNavbar';
+import { Seo } from '../components/Seo';
 
 type TimeFilter = '24h' | '7d' | '1m' | '1y' | 'all';
 
@@ -32,6 +33,19 @@ export function DeviceDetailPage() {
   const [connection, setConnection] = useState<HubConnection | null>(null);
   const [isSimulating, setIsSimulating] = useState(false);
   const [isGeneratingHistory, setIsGeneratingHistory] = useState(false);
+  const [isPhoneChart, setIsPhoneChart] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 639px)');
+    const updateChartMode = () => setIsPhoneChart(mediaQuery.matches);
+
+    updateChartMode();
+    mediaQuery.addEventListener('change', updateChartMode);
+
+    return () => {
+      mediaQuery.removeEventListener('change', updateChartMode);
+    };
+  }, []);
 
   const loadDevice = useCallback(async () => {
     if (!id) return;
@@ -229,6 +243,10 @@ export function DeviceDetailPage() {
 
   return (
     <div className="bg-gray-100">
+      <Seo
+        title={`${device.name} | IoT Data Portal`}
+        description={`View live and historical measurements for ${device.name}${device.location ? ` in ${device.location}` : ''}.`}
+      />
       <AppNavbar
         title={device.name}
         subtitle={device.location ? `📍 ${device.location}` : undefined}
@@ -246,7 +264,7 @@ export function DeviceDetailPage() {
       </AppNavbar>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
             {error}
@@ -258,12 +276,13 @@ export function DeviceDetailPage() {
 
         {/* Controls */}
         <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="flex flex-wrap justify-between items-center gap-4">
-            <div className="flex gap-2">
-              <span className="text-sm text-gray-600 self-center">Time range:</span>
+          <div className="flex flex-col gap-4 lg:flex-row lg:justify-between lg:items-center">
+            <div className="w-full min-w-0">
+              <div className="text-sm text-gray-600 mb-2">Time range:</div>
+              <div className="flex gap-2 overflow-x-auto pb-3 lg:pb-1 whitespace-nowrap">
               <button
                 onClick={() => setTimeFilter('24h')}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
                   timeFilter === '24h'
                     ? 'bg-blue-600 text-white cursor-pointer'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
@@ -273,7 +292,7 @@ export function DeviceDetailPage() {
               </button>
               <button
                 onClick={() => setTimeFilter('7d')}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
                   timeFilter === '7d'
                     ? 'bg-blue-600 text-white cursor-pointer'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
@@ -283,7 +302,7 @@ export function DeviceDetailPage() {
               </button>
               <button
                 onClick={() => setTimeFilter('1m')}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
                   timeFilter === '1m'
                     ? 'bg-blue-600 text-white cursor-pointer'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
@@ -293,7 +312,7 @@ export function DeviceDetailPage() {
               </button>
               <button
                 onClick={() => setTimeFilter('1y')}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
                   timeFilter === '1y'
                     ? 'bg-blue-600 text-white cursor-pointer'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
@@ -303,7 +322,7 @@ export function DeviceDetailPage() {
               </button>
               <button
                 onClick={() => setTimeFilter('all')}
-                className={`px-4 py-2 rounded-md text-sm font-medium ${
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
                   timeFilter === 'all'
                     ? 'bg-blue-600 text-white cursor-pointer'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200 cursor-pointer'
@@ -311,19 +330,20 @@ export function DeviceDetailPage() {
               >
                 All Time
               </button>
+              </div>
             </div>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full lg:w-auto">
               <button
                 onClick={handleSimulate}
                 disabled={isSimulating}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 text-sm cursor-pointer disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 text-sm cursor-pointer disabled:cursor-not-allowed w-full"
               >
                 {isSimulating ? 'Simulating...' : '⚡ Simulate Measurement'}
               </button>
               <button
                 onClick={handleGenerateHistory}
                 disabled={isGeneratingHistory}
-                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 text-sm cursor-pointer disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 text-sm cursor-pointer disabled:cursor-not-allowed w-full"
               >
                 {isGeneratingHistory ? 'Generating...' : '📊 Generate History'}
               </button>
@@ -345,7 +365,7 @@ export function DeviceDetailPage() {
         </div>
 
         {/* Chart */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Measurement History
           </h2>
@@ -354,40 +374,61 @@ export function DeviceDetailPage() {
               No measurements yet. Click "Simulate Measurement" or "Generate History" to add data.
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={chartData}>
+            <ResponsiveContainer width="100%" height={isPhoneChart ? 280 : 320}>
+              <LineChart
+                data={chartData}
+                margin={
+                  isPhoneChart
+                    ? { top: 8, right: 6, left: 6, bottom: 0 }
+                    : { top: 8, right: 12, left: 0, bottom: 0 }
+                }
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   type="number"
                   scale="time"
                   domain={['dataMin', 'dataMax']}
                   dataKey="timestampMs"
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: isPhoneChart ? 10 : 11 }}
                   tickFormatter={formatXAxisTick}
-                  minTickGap={32}
+                  minTickGap={isPhoneChart ? 56 : 32}
+                  interval="preserveStartEnd"
                 />
-                <YAxis yAxisId="temp" orientation="left" domain={['auto', 'auto']} />
-                <YAxis yAxisId="humidity" orientation="right" domain={[0, 100]} />
+                <YAxis
+                  yAxisId="temp"
+                  orientation="left"
+                  domain={['auto', 'auto']}
+                  tick={{ fontSize: isPhoneChart ? 10 : 11 }}
+                  tickMargin={isPhoneChart ? 6 : 8}
+                  width={isPhoneChart ? 40 : 45}
+                />
+                <YAxis
+                  yAxisId="humidity"
+                  orientation="right"
+                  domain={[0, 100]}
+                  tick={{ fontSize: 11 }}
+                  width={45}
+                />
                 <Tooltip
                   labelFormatter={(value) => new Date(Number(value)).toLocaleString('sv-SE')}
                 />
-                <Legend />
+                {!isPhoneChart && <Legend />}
                 <Line
                   yAxisId="temp"
                   type="monotone"
                   dataKey="temperature"
-                  name="Temperature (°C)"
+                  name="Temp (°C)"
                   stroke="#ef4444"
-                  strokeWidth={2}
+                  strokeWidth={isPhoneChart ? 1.8 : 2}
                   dot={false}
                 />
                 <Line
                   yAxisId="humidity"
                   type="monotone"
                   dataKey="humidity"
-                  name="Humidity (%)"
+                  name="Humidity"
                   stroke="#3b82f6"
-                  strokeWidth={2}
+                  strokeWidth={isPhoneChart ? 1.8 : 2}
                   dot={false}
                 />
                 <Line
@@ -396,7 +437,7 @@ export function DeviceDetailPage() {
                   dataKey="energyUsage"
                   name="Energy (kWh)"
                   stroke="#22c55e"
-                  strokeWidth={2}
+                  strokeWidth={isPhoneChart ? 1.8 : 2}
                   dot={false}
                 />
               </LineChart>
@@ -406,7 +447,7 @@ export function DeviceDetailPage() {
 
         {/* Latest Measurements Table */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
             <h2 className="text-lg font-semibold text-gray-900">
               Latest Measurements
             </h2>
@@ -415,16 +456,16 @@ export function DeviceDetailPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Timestamp
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Temperature
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Humidity
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Energy Usage
                   </th>
                 </tr>
@@ -432,27 +473,27 @@ export function DeviceDetailPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {latestMeasurements.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                    <td colSpan={4} className="px-3 sm:px-6 py-4 text-center text-gray-500">
                       No measurements yet
                     </td>
                   </tr>
                 ) : (
                   latestMeasurements.map((m) => (
                     <tr key={m.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {new Date(m.timestamp).toLocaleString('sv-SE')}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
                         <span className="text-red-600 font-medium">
                           {m.temperature.toFixed(1)}°C
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
                         <span className="text-blue-600 font-medium">
                           {m.humidity.toFixed(1)}%
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
                         <span className="text-green-600 font-medium">
                           {m.energyUsage.toFixed(2)} kWh
                         </span>

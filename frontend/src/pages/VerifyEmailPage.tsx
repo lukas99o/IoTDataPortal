@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { authService } from '../services/authService';
+import { Seo } from '../components/Seo';
 
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
@@ -40,6 +41,11 @@ export function VerifyEmailPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+      <Seo
+        title="Verify Email | IoT Data Portal"
+        description="Verify your email address to activate your IoT Data Portal account."
+        noindex
+      />
       <div className="max-w-md w-full bg-white rounded-lg border border-gray-200 shadow-sm p-8 text-center">
         <h1 className="text-2xl font-bold text-gray-900">Email verification</h1>
 

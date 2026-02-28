@@ -5,6 +5,7 @@ import type { Device } from '../types';
 import { deviceService } from '../services/deviceService';
 import { AddDeviceModal } from '../components/AddDeviceModal';
 import { AppNavbar } from '../components/AppNavbar';
+import { Seo } from '../components/Seo';
 
 export function DashboardPage() {
   const { user, logout } = useAuth();
@@ -58,6 +59,10 @@ export function DashboardPage() {
 
   return (
     <div className="bg-gray-100">
+      <Seo
+        title="Dashboard | IoT Data Portal"
+        description="Monitor your connected IoT devices, view locations, and manage device details from one dashboard."
+      />
       <AppNavbar
         title="IoT Data Portal"
         userEmail={user?.email}
@@ -88,7 +93,7 @@ export function DashboardPage() {
         </section>
 
         <div className="rounded-xl border border-gray-200 bg-white px-5 py-4">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">My Devices</h2>
             <p className="text-sm text-gray-500 mt-1">Manage and monitor your connected IoT devices.</p>
@@ -96,7 +101,7 @@ export function DashboardPage() {
           {devices.length != 0 && (
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors cursor-pointer w-full sm:w-auto"
             >
               Add Device
             </button>
