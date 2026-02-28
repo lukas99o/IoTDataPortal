@@ -353,74 +353,76 @@ export function DeviceDetailPage() {
               No measurements yet. Click "Simulate Measurement" or "Generate History" to add data.
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height={isPhoneChart ? 280 : 320}>
-              <LineChart
-                data={chartData}
-                margin={
-                  isPhoneChart
-                    ? { top: 8, right: 6, left: 6, bottom: 0 }
-                    : { top: 8, right: 12, left: 0, bottom: 0 }
-                }
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  type="number"
-                  scale="time"
-                  domain={['dataMin', 'dataMax']}
-                  dataKey="timestampMs"
-                  tick={{ fontSize: isPhoneChart ? 10 : 11 }}
-                  tickFormatter={formatXAxisTick}
-                  minTickGap={isPhoneChart ? 56 : 32}
-                  interval="preserveStartEnd"
-                />
-                <YAxis
-                  yAxisId="temp"
-                  orientation="left"
-                  domain={['auto', 'auto']}
-                  tick={{ fontSize: isPhoneChart ? 10 : 11 }}
-                  tickMargin={isPhoneChart ? 6 : 8}
-                  width={isPhoneChart ? 40 : 45}
-                />
-                <YAxis
-                  yAxisId="humidity"
-                  orientation="right"
-                  domain={[0, 100]}
-                  tick={{ fontSize: 11 }}
-                  width={45}
-                />
-                <Tooltip
-                  labelFormatter={(value) => new Date(Number(value)).toLocaleString('sv-SE')}
-                />
-                {!isPhoneChart && <Legend />}
-                <Line
-                  yAxisId="temp"
-                  type="monotone"
-                  dataKey="temperature"
-                  name="Temp (°C)"
-                  stroke="#ef4444"
-                  strokeWidth={isPhoneChart ? 1.8 : 2}
-                  dot={false}
-                />
-                <Line
-                  yAxisId="humidity"
-                  type="monotone"
-                  dataKey="humidity"
-                  name="Humidity"
-                  stroke="#3b82f6"
-                  strokeWidth={isPhoneChart ? 1.8 : 2}
-                  dot={false}
-                />
-                <Line
-                  yAxisId="temp"
-                  type="monotone"
-                  dataKey="energyUsage"
-                  name="Energy (kWh)"
-                  stroke="#22c55e"
-                  strokeWidth={isPhoneChart ? 1.8 : 2}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="-mx-2 sm:mx-0">
+              <ResponsiveContainer width="100%" height={isPhoneChart ? 280 : 320}>
+                <LineChart
+                  data={chartData}
+                  margin={
+                    isPhoneChart
+                      ? { top: 8, right: 2, left: 2, bottom: 0 }
+                      : { top: 8, right: 12, left: 0, bottom: 0 }
+                  }
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    type="number"
+                    scale="time"
+                    domain={['dataMin', 'dataMax']}
+                    dataKey="timestampMs"
+                    tick={{ fontSize: isPhoneChart ? 10 : 11 }}
+                    tickFormatter={formatXAxisTick}
+                    minTickGap={isPhoneChart ? 56 : 32}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis
+                    yAxisId="temp"
+                    orientation="left"
+                    domain={['auto', 'auto']}
+                    tick={{ fontSize: isPhoneChart ? 10 : 11 }}
+                    tickMargin={isPhoneChart ? 6 : 8}
+                    width={isPhoneChart ? 40 : 45}
+                  />
+                  <YAxis
+                    yAxisId="humidity"
+                    orientation="right"
+                    domain={[0, 100]}
+                    tick={{ fontSize: 11 }}
+                    width={45}
+                  />
+                  <Tooltip
+                    labelFormatter={(value) => new Date(Number(value)).toLocaleString('sv-SE')}
+                  />
+                  {!isPhoneChart && <Legend />}
+                  <Line
+                    yAxisId="temp"
+                    type="monotone"
+                    dataKey="temperature"
+                    name="Temp (°C)"
+                    stroke="#ef4444"
+                    strokeWidth={isPhoneChart ? 1.8 : 2}
+                    dot={false}
+                  />
+                  <Line
+                    yAxisId="humidity"
+                    type="monotone"
+                    dataKey="humidity"
+                    name="Humidity"
+                    stroke="#3b82f6"
+                    strokeWidth={isPhoneChart ? 1.8 : 2}
+                    dot={false}
+                  />
+                  <Line
+                    yAxisId="temp"
+                    type="monotone"
+                    dataKey="energyUsage"
+                    name="Energy (kWh)"
+                    stroke="#22c55e"
+                    strokeWidth={isPhoneChart ? 1.8 : 2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           )}
         </div>
 
