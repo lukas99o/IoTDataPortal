@@ -42,7 +42,7 @@ export function AppNavbar({
                     <img
                       src={logoSrc}
                       alt={logoAlt}
-                      className="h-7 w-7 sm:h-12 sm:w-12 object-contain"
+                      className="h-9 w-9 sm:h-12 sm:w-12 object-contain"
                     />
                   )}
                   <span>{title}</span>

@@ -17,12 +17,14 @@ import { deviceService } from '../services/deviceService';
 import { measurementService } from '../services/measurementService';
 import { AppNavbar } from '../components/AppNavbar';
 import { Seo } from '../components/Seo';
+import { parseApiTimestamp } from '../utils/dateTime';
 
 type TimeFilter = '24h' | '7d' | '1m' | '1y' | 'all';
 
 export function DeviceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user, logout } = useAuth();
+  const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   
   const [device, setDevice] = useState<Device | null>(null);
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
@@ -168,11 +170,13 @@ export function DeviceDetailPage() {
 
   // Format chart data
   const sortedMeasurements = [...measurements].sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    (a, b) =>
+      parseApiTimestamp(a.timestamp).getTime() -
+      parseApiTimestamp(b.timestamp).getTime()
   );
 
   const chartData = sortedMeasurements.map((m) => ({
-    timestampMs: new Date(m.timestamp).getTime(),
+    timestampMs: parseApiTimestamp(m.timestamp).getTime(),
     temperature: m.temperature,
     humidity: m.humidity,
     energyUsage: m.energyUsage,
@@ -180,7 +184,9 @@ export function DeviceDetailPage() {
 
   // Latest measurements for table
   const latestMeasurements = [...measurements].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    (a, b) =>
+      parseApiTimestamp(b.timestamp).getTime() -
+      parseApiTimestamp(a.timestamp).getTime()
   );
 
   const formatXAxisTick = (value: number) => {
@@ -190,6 +196,7 @@ export function DeviceDetailPage() {
       return date.toLocaleTimeString('sv-SE', {
         hour: '2-digit',
         minute: '2-digit',
+        timeZone: userTimeZone,
       });
     }
 
@@ -197,12 +204,14 @@ export function DeviceDetailPage() {
       return date.toLocaleDateString('sv-SE', {
         year: '2-digit',
         month: '2-digit',
+        timeZone: userTimeZone,
       });
     }
 
     return date.toLocaleDateString('sv-SE', {
       month: '2-digit',
       day: '2-digit',
+      timeZone: userTimeZone,
     });
   };
 
@@ -390,7 +399,11 @@ export function DeviceDetailPage() {
                     width={45}
                   />
                   <Tooltip
-                    labelFormatter={(value) => new Date(Number(value)).toLocaleString('sv-SE')}
+                    labelFormatter={(value) =>
+                      new Date(Number(value)).toLocaleString('sv-SE', {
+                        timeZone: userTimeZone,
+                      })
+                    }
                   />
                   {!isPhoneChart && <Legend />}
                   <Line
@@ -462,7 +475,9 @@ export function DeviceDetailPage() {
                   latestMeasurements.map((m) => (
                     <tr key={m.id}>
                       <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
-                        {new Date(m.timestamp).toLocaleString('sv-SE')}
+                        {parseApiTimestamp(m.timestamp).toLocaleString('sv-SE', {
+                          timeZone: userTimeZone,
+                        })}
                       </td>
                       <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
                         <span className="text-red-600 font-medium">
