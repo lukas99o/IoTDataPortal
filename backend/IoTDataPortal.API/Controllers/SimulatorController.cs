@@ -86,7 +86,6 @@ public class SimulatorController : ControllerBase
 
                 measurements.Add(measurementDto);
 
-                await _hubContext.Clients.Group(userId).SendAsync("ReceiveMeasurement", measurementDto);
                 await _hubContext.Clients.Group($"device_{deviceId}").SendAsync("ReceiveMeasurement", measurementDto);
             }
         }

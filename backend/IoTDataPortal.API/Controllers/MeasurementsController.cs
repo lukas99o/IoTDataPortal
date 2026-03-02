@@ -119,7 +119,6 @@ public class MeasurementsController : ControllerBase
 
         foreach (var measurementDto in measurementDtos)
         {
-            await _hubContext.Clients.Group(userId).SendAsync("ReceiveMeasurement", measurementDto);
             await _hubContext.Clients.Group($"device_{dto.DeviceId}").SendAsync("ReceiveMeasurement", measurementDto);
         }
 
