@@ -450,7 +450,7 @@ export function DeviceDetailPage() {
         <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-gray-800">
           <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-gray-800">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Latest Measurements
+              Measurements
             </h2>
           </div>
           <div className="max-h-150 overflow-auto">
