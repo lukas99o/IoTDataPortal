@@ -58,11 +58,11 @@ public class SimulatorIntegrationTests : IClassFixture<CustomWebApplicationFacto
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var payload = await response.Content.ReadFromJsonAsync<List<MeasurementDto>>();
         payload.Should().NotBeNull();
-        payload!.Should().HaveCount(3);
+        payload!.Should().HaveCount(9);
 
         await using var scope = _factory.Services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        context.Measurements.Count(m => m.DeviceId == deviceId).Should().Be(3);
+        context.Measurements.Count(m => m.DeviceId == deviceId).Should().Be(9);
     }
 
     [Fact]
@@ -105,11 +105,11 @@ public class SimulatorIntegrationTests : IClassFixture<CustomWebApplicationFacto
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         var payload = await response.Content.ReadAsStringAsync();
-        payload.Should().Contain("Generated 48 historical measurements");
+        payload.Should().Contain("Generated 144 historical measurements");
 
         await using var scope = _factory.Services.CreateAsyncScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        context.Measurements.Count(m => m.DeviceId == deviceId).Should().Be(48);
+        context.Measurements.Count(m => m.DeviceId == deviceId).Should().Be(144);
     }
 
     private async Task<Guid> SeedDeviceForOwner(string ownerId)

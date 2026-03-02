@@ -10,13 +10,28 @@ public class CreateMeasurementDtoValidator : AbstractValidator<CreateMeasurement
         RuleFor(x => x.DeviceId)
             .NotEmpty().WithMessage("Device ID is required");
 
-        RuleFor(x => x.Temperature)
-            .InclusiveBetween(-50, 100).WithMessage("Temperature must be between -50 and 100°C");
+        RuleFor(x => x.Measurements)
+            .NotEmpty().WithMessage("At least one measurement is required");
 
-        RuleFor(x => x.Humidity)
-            .InclusiveBetween(0, 100).WithMessage("Humidity must be between 0 and 100%");
+        RuleForEach(x => x.Measurements)
+            .SetValidator(new CreateMetricValueDtoValidator());
+    }
+}
 
-        RuleFor(x => x.EnergyUsage)
-            .GreaterThanOrEqualTo(0).WithMessage("Energy usage cannot be negative");
+public class CreateMetricValueDtoValidator : AbstractValidator<CreateMetricValueDto>
+{
+    public CreateMetricValueDtoValidator()
+    {
+        RuleFor(x => x.MetricType)
+            .NotEmpty().WithMessage("Metric type is required")
+            .MaximumLength(100).WithMessage("Metric type cannot exceed 100 characters");
+
+        RuleFor(x => x.Value)
+            .Must(value => !double.IsNaN(value) && !double.IsInfinity(value))
+            .WithMessage("Measurement value must be a valid number");
+
+        RuleFor(x => x.Unit)
+            .MaximumLength(20).WithMessage("Unit cannot exceed 20 characters")
+            .When(x => !string.IsNullOrWhiteSpace(x.Unit));
     }
 }

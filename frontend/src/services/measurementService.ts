@@ -15,8 +15,8 @@ export const measurementService = {
     return response.data;
   },
 
-  create: async (data: CreateMeasurement): Promise<Measurement> => {
-    const response = await api.post<Measurement>('/measurements', data);
+  create: async (data: CreateMeasurement): Promise<Measurement[]> => {
+    const response = await api.post<Measurement[]>('/measurements', data);
     return response.data;
   },
 

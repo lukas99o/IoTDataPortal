@@ -86,9 +86,9 @@ public class MeasurementsIntegrationTests : IClassFixture<CustomWebApplicationFa
                 Id = Guid.NewGuid(),
                 DeviceId = deviceId,
                 Timestamp = timestamp,
-                Temperature = 20,
-                Humidity = 40,
-                EnergyUsage = 0.8,
+                MetricType = "temperature",
+                Value = 20,
+                Unit = "°C",
             });
         }
 

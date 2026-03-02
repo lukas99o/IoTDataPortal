@@ -34,7 +34,7 @@ public class ApplicationDbContext : IdentityDbContext<User>
 
         // Index for efficient querying
         builder.Entity<Measurement>()
-            .HasIndex(m => new { m.DeviceId, m.Timestamp });
+            .HasIndex(m => new { m.DeviceId, m.MetricType, m.Timestamp });
 
         builder.Entity<Device>()
             .HasIndex(d => d.OwnerId);

@@ -166,9 +166,9 @@ public class DevicesIntegrationTests : IClassFixture<CustomWebApplicationFactory
                         Id = Guid.NewGuid(),
                         DeviceId = deviceId,
                         Timestamp = DateTime.UtcNow,
-                        Temperature = 20,
-                        Humidity = 40,
-                        EnergyUsage = 1.1,
+                        MetricType = "temperature",
+                        Value = 20,
+                        Unit = "°C",
                     }
                 }
             });

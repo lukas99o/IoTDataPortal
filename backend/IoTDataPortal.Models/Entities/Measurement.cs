@@ -12,10 +12,13 @@ public class Measurement
     public Device Device { get; set; } = null!;
     
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-    
-    public double Temperature { get; set; }
-    
-    public double Humidity { get; set; }
-    
-    public double EnergyUsage { get; set; }
+
+    [Required]
+    [MaxLength(100)]
+    public string MetricType { get; set; } = string.Empty;
+
+    public double Value { get; set; }
+
+    [MaxLength(20)]
+    public string? Unit { get; set; }
 }

@@ -18,6 +18,12 @@ public class SimulatorController : ControllerBase
     private readonly ApplicationDbContext _context;
     private readonly IHubContext<MeasurementHub> _hubContext;
     private static readonly Random _random = new();
+    private static readonly (string MetricType, string Unit, Func<double> Generator)[] SimulatedMetrics =
+    [
+        ("temperature", "°C", () => Math.Round(18.0 + _random.NextDouble() * 10.0, 1)),
+        ("humidity", "%", () => Math.Round(30.0 + _random.NextDouble() * 40.0, 1)),
+        ("energy_usage", "kWh", () => Math.Round(0.5 + _random.NextDouble() * 2.5, 2)),
+    ];
 
     public SimulatorController(ApplicationDbContext context, IHubContext<MeasurementHub> hubContext)
     {
@@ -53,33 +59,36 @@ public class SimulatorController : ControllerBase
 
         for (int i = 0; i < count; i++)
         {
-            var measurement = new Measurement
+            var timestamp = DateTime.UtcNow.AddSeconds(-i);
+            var measurementBatch = SimulatedMetrics.Select(metric => new Measurement
             {
                 Id = Guid.NewGuid(),
                 DeviceId = deviceId,
-                Timestamp = DateTime.UtcNow.AddSeconds(-i), // Slightly staggered timestamps
-                Temperature = Math.Round(18.0 + _random.NextDouble() * 10.0, 1), // 18-28°C
-                Humidity = Math.Round(30.0 + _random.NextDouble() * 40.0, 1), // 30-70%
-                EnergyUsage = Math.Round(0.5 + _random.NextDouble() * 2.5, 2) // 0.5-3.0 kWh
-            };
+                Timestamp = timestamp,
+                MetricType = metric.MetricType,
+                Value = metric.Generator(),
+                Unit = metric.Unit
+            }).ToList();
 
-            _context.Measurements.Add(measurement);
+            _context.Measurements.AddRange(measurementBatch);
 
-            var measurementDto = new MeasurementDto
+            foreach (var measurement in measurementBatch)
             {
-                Id = measurement.Id,
-                DeviceId = measurement.DeviceId,
-                Timestamp = measurement.Timestamp,
-                Temperature = measurement.Temperature,
-                Humidity = measurement.Humidity,
-                EnergyUsage = measurement.EnergyUsage
-            };
+                var measurementDto = new MeasurementDto
+                {
+                    Id = measurement.Id,
+                    DeviceId = measurement.DeviceId,
+                    Timestamp = measurement.Timestamp,
+                    MetricType = measurement.MetricType,
+                    Value = measurement.Value,
+                    Unit = measurement.Unit
+                };
 
-            measurements.Add(measurementDto);
+                measurements.Add(measurementDto);
 
-            // Broadcast each measurement via SignalR
-            await _hubContext.Clients.Group(userId).SendAsync("ReceiveMeasurement", measurementDto);
-            await _hubContext.Clients.Group($"device_{deviceId}").SendAsync("ReceiveMeasurement", measurementDto);
+                await _hubContext.Clients.Group(userId).SendAsync("ReceiveMeasurement", measurementDto);
+                await _hubContext.Clients.Group($"device_{deviceId}").SendAsync("ReceiveMeasurement", measurementDto);
+            }
         }
 
         await _context.SaveChangesAsync();
@@ -114,21 +123,23 @@ public class SimulatorController : ControllerBase
 
         for (int i = 0; i < totalMeasurements; i++)
         {
-            var measurement = new Measurement
+            var timestamp = startDate.AddHours(i);
+            var measurementBatch = SimulatedMetrics.Select(metric => new Measurement
             {
                 Id = Guid.NewGuid(),
                 DeviceId = deviceId,
-                Timestamp = startDate.AddHours(i),
-                Temperature = Math.Round(18.0 + _random.NextDouble() * 10.0, 1),
-                Humidity = Math.Round(30.0 + _random.NextDouble() * 40.0, 1),
-                EnergyUsage = Math.Round(0.5 + _random.NextDouble() * 2.5, 2)
-            };
+                Timestamp = timestamp,
+                MetricType = metric.MetricType,
+                Value = metric.Generator(),
+                Unit = metric.Unit
+            });
 
-            _context.Measurements.Add(measurement);
+            _context.Measurements.AddRange(measurementBatch);
         }
 
         await _context.SaveChangesAsync();
 
-        return Ok(new { message = $"Generated {totalMeasurements} historical measurements for the past {days} days" });
+        var totalMetricRecords = totalMeasurements * SimulatedMetrics.Length;
+        return Ok(new { message = $"Generated {totalMetricRecords} historical measurements for the past {days} days" });
     }
 }

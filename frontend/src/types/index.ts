@@ -28,16 +28,20 @@ export interface Measurement {
   id: string;
   deviceId: string;
   timestamp: string;
-  temperature: number;
-  humidity: number;
-  energyUsage: number;
+  metricType: string;
+  value: number;
+  unit?: string;
+}
+
+export interface MetricValueInput {
+  metricType: string;
+  value: number;
+  unit?: string;
 }
 
 export interface CreateMeasurement {
   deviceId: string;
-  temperature: number;
-  humidity: number;
-  energyUsage: number;
+  measurements: MetricValueInput[];
 }
 
 export interface ApiError {

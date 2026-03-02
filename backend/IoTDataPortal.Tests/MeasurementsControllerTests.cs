@@ -43,9 +43,27 @@ public class MeasurementsControllerTests
         var dto = new CreateMeasurementDto
         {
             DeviceId = deviceId,
-            Temperature = 21.5,
-            Humidity = 46.2,
-            EnergyUsage = 0.33,
+            Measurements =
+            [
+                new CreateMetricValueDto
+                {
+                    MetricType = "temperature",
+                    Value = 21.5,
+                    Unit = "°C",
+                },
+                new CreateMetricValueDto
+                {
+                    MetricType = "humidity",
+                    Value = 46.2,
+                    Unit = "%",
+                },
+                new CreateMetricValueDto
+                {
+                    MetricType = "energy_usage",
+                    Value = 0.33,
+                    Unit = "kWh",
+                },
+            ],
         };
 
         var result = await controller.CreateMeasurement(dto);
@@ -53,17 +71,18 @@ public class MeasurementsControllerTests
         var createdAt = Assert.IsType<CreatedAtActionResult>(result.Result);
         Assert.Equal(nameof(MeasurementsController.GetMeasurements), createdAt.ActionName);
 
-        var returned = Assert.IsType<MeasurementDto>(createdAt.Value);
-        Assert.Equal(deviceId, returned.DeviceId);
-        Assert.Equal(dto.Temperature, returned.Temperature);
-        Assert.Equal(dto.Humidity, returned.Humidity);
-        Assert.Equal(dto.EnergyUsage, returned.EnergyUsage);
+        var returned = Assert.IsType<List<MeasurementDto>>(createdAt.Value);
+        Assert.Equal(3, returned.Count);
+        Assert.All(returned, m => Assert.Equal(deviceId, m.DeviceId));
+        Assert.Contains(returned, m => m is { MetricType: "temperature", Value: 21.5, Unit: "°C" });
+        Assert.Contains(returned, m => m is { MetricType: "humidity", Value: 46.2, Unit: "%" });
+        Assert.Contains(returned, m => m is { MetricType: "energy_usage", Value: 0.33, Unit: "kWh" });
 
         var saved = await context.Measurements.Where(m => m.DeviceId == deviceId).ToListAsync();
-        Assert.Single(saved);
+        Assert.Equal(3, saved.Count);
 
-        hubClientsMock.Verify(c => c.Group(userId), Times.Once);
-        hubClientsMock.Verify(c => c.Group($"device_{deviceId}"), Times.Once);
+        hubClientsMock.Verify(c => c.Group(userId), Times.Exactly(3));
+        hubClientsMock.Verify(c => c.Group($"device_{deviceId}"), Times.Exactly(3));
         clientProxyMock.Verify(
             proxy => proxy.SendCoreAsync(
                 "ReceiveMeasurement",
@@ -73,7 +92,7 @@ public class MeasurementsControllerTests
                     args[0]!.GetType() == typeof(MeasurementDto) &&
                     ((MeasurementDto)args[0]!).DeviceId == deviceId),
                 It.IsAny<CancellationToken>()),
-            Times.Exactly(2));
+            Times.Exactly(6));
     }
 
     [Fact]
@@ -96,9 +115,15 @@ public class MeasurementsControllerTests
         var dto = new CreateMeasurementDto
         {
             DeviceId = Guid.NewGuid(),
-            Temperature = 22,
-            Humidity = 50,
-            EnergyUsage = 0.5,
+            Measurements =
+            [
+                new CreateMetricValueDto
+                {
+                    MetricType = "temperature",
+                    Value = 22,
+                    Unit = "°C",
+                },
+            ],
         };
 
         var result = await controller.CreateMeasurement(dto);

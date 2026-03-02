@@ -31,7 +31,8 @@ public class MeasurementsController : ControllerBase
     public async Task<ActionResult<IEnumerable<MeasurementDto>>> GetMeasurements(
         [FromQuery] Guid deviceId,
         [FromQuery] DateTime? from,
-        [FromQuery] DateTime? to)
+        [FromQuery] DateTime? to,
+        [FromQuery] string? metricType)
     {
         var userId = GetUserId();
 
@@ -57,6 +58,11 @@ public class MeasurementsController : ControllerBase
             query = query.Where(m => m.Timestamp <= to.Value);
         }
 
+        if (!string.IsNullOrWhiteSpace(metricType))
+        {
+            query = query.Where(m => m.MetricType == metricType);
+        }
+
         var measurements = await query
             .OrderByDescending(m => m.Timestamp)
             .Select(m => new MeasurementDto
@@ -64,9 +70,9 @@ public class MeasurementsController : ControllerBase
                 Id = m.Id,
                 DeviceId = m.DeviceId,
                 Timestamp = m.Timestamp,
-                Temperature = m.Temperature,
-                Humidity = m.Humidity,
-                EnergyUsage = m.EnergyUsage
+                MetricType = m.MetricType,
+                Value = m.Value,
+                Unit = m.Unit
             })
             .ToListAsync();
 
@@ -74,7 +80,7 @@ public class MeasurementsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<MeasurementDto>> CreateMeasurement([FromBody] CreateMeasurementDto dto)
+    public async Task<ActionResult<IEnumerable<MeasurementDto>>> CreateMeasurement([FromBody] CreateMeasurementDto dto)
     {
         var userId = GetUserId();
 
@@ -87,33 +93,36 @@ public class MeasurementsController : ControllerBase
             return NotFound(new { message = "Device not found" });
         }
 
-        var measurement = new Measurement
+        var timestamp = DateTime.UtcNow;
+        var measurements = dto.Measurements.Select(m => new Measurement
         {
             Id = Guid.NewGuid(),
             DeviceId = dto.DeviceId,
-            Timestamp = DateTime.UtcNow,
-            Temperature = dto.Temperature,
-            Humidity = dto.Humidity,
-            EnergyUsage = dto.EnergyUsage
-        };
+            Timestamp = timestamp,
+            MetricType = m.MetricType.Trim(),
+            Value = m.Value,
+            Unit = string.IsNullOrWhiteSpace(m.Unit) ? null : m.Unit.Trim()
+        }).ToList();
 
-        _context.Measurements.Add(measurement);
+        _context.Measurements.AddRange(measurements);
         await _context.SaveChangesAsync();
 
-        var measurementDto = new MeasurementDto
+        var measurementDtos = measurements.Select(m => new MeasurementDto
         {
-            Id = measurement.Id,
-            DeviceId = measurement.DeviceId,
-            Timestamp = measurement.Timestamp,
-            Temperature = measurement.Temperature,
-            Humidity = measurement.Humidity,
-            EnergyUsage = measurement.EnergyUsage
-        };
+            Id = m.Id,
+            DeviceId = m.DeviceId,
+            Timestamp = m.Timestamp,
+            MetricType = m.MetricType,
+            Value = m.Value,
+            Unit = m.Unit
+        }).ToList();
 
-        // Broadcast to SignalR clients
-        await _hubContext.Clients.Group(userId).SendAsync("ReceiveMeasurement", measurementDto);
-        await _hubContext.Clients.Group($"device_{dto.DeviceId}").SendAsync("ReceiveMeasurement", measurementDto);
+        foreach (var measurementDto in measurementDtos)
+        {
+            await _hubContext.Clients.Group(userId).SendAsync("ReceiveMeasurement", measurementDto);
+            await _hubContext.Clients.Group($"device_{dto.DeviceId}").SendAsync("ReceiveMeasurement", measurementDto);
+        }
 
-        return CreatedAtAction(nameof(GetMeasurements), new { deviceId = measurement.DeviceId }, measurementDto);
+        return CreatedAtAction(nameof(GetMeasurements), new { deviceId = dto.DeviceId }, measurementDtos);
     }
 }

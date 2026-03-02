@@ -175,12 +175,29 @@ export function DeviceDetailPage() {
       parseApiTimestamp(b.timestamp).getTime()
   );
 
-  const chartData = sortedMeasurements.map((m) => ({
-    timestampMs: parseApiTimestamp(m.timestamp).getTime(),
-    temperature: m.temperature,
-    humidity: m.humidity,
-    energyUsage: m.energyUsage,
-  }));
+  const chartRowsByTimestamp = new Map<number, Record<string, number>>();
+  const metricUnits = new Map<string, string>();
+
+  for (const measurement of sortedMeasurements) {
+    const timestampMs = parseApiTimestamp(measurement.timestamp).getTime();
+    const existingRow = chartRowsByTimestamp.get(timestampMs) ?? {};
+    existingRow[measurement.metricType] = measurement.value;
+    chartRowsByTimestamp.set(timestampMs, existingRow);
+
+    if (measurement.unit && !metricUnits.has(measurement.metricType)) {
+      metricUnits.set(measurement.metricType, measurement.unit);
+    }
+  }
+
+  const chartData = Array.from(chartRowsByTimestamp.entries())
+    .sort(([leftTimestamp], [rightTimestamp]) => leftTimestamp - rightTimestamp)
+    .map(([timestampMs, metricValues]) => ({
+      timestampMs,
+      ...metricValues,
+    }));
+
+  const metricTypes = Array.from(new Set(sortedMeasurements.map((m) => m.metricType))).sort();
+  const lineColors = ['#ef4444', '#3b82f6', '#22c55e'];
 
   // Latest measurements for table
   const latestMeasurements = [...measurements].sort(
@@ -384,19 +401,12 @@ export function DeviceDetailPage() {
                     interval="preserveStartEnd"
                   />
                   <YAxis
-                    yAxisId="temp"
-                    orientation="left"
+                    yAxisId="metrics"
+                    orientation="right"
                     domain={['auto', 'auto']}
                     tick={{ fontSize: isPhoneChart ? 10 : 11 }}
                     tickMargin={isPhoneChart ? 6 : 8}
                     width={isPhoneChart ? 40 : 45}
-                  />
-                  <YAxis
-                    yAxisId="humidity"
-                    orientation="right"
-                    domain={[0, 100]}
-                    tick={{ fontSize: 11 }}
-                    width={45}
                   />
                   <Tooltip
                     labelFormatter={(value) =>
@@ -404,35 +414,32 @@ export function DeviceDetailPage() {
                         timeZone: userTimeZone,
                       })
                     }
+                    formatter={(value, name) => {
+                      const unit = metricUnits.get(String(name));
+                      const formattedValue = typeof value === 'number' ? value.toFixed(2) : value;
+                      const suffix = unit ? ` ${unit}` : '';
+                      return [`${formattedValue}${suffix}`, String(name)];
+                    }}
                   />
                   {!isPhoneChart && <Legend />}
-                  <Line
-                    yAxisId="temp"
-                    type="monotone"
-                    dataKey="temperature"
-                    name="Temp (°C)"
-                    stroke="#ef4444"
-                    strokeWidth={isPhoneChart ? 1.8 : 2}
-                    dot={false}
-                  />
-                  <Line
-                    yAxisId="humidity"
-                    type="monotone"
-                    dataKey="humidity"
-                    name="Humidity"
-                    stroke="#3b82f6"
-                    strokeWidth={isPhoneChart ? 1.8 : 2}
-                    dot={false}
-                  />
-                  <Line
-                    yAxisId="temp"
-                    type="monotone"
-                    dataKey="energyUsage"
-                    name="Energy (kWh)"
-                    stroke="#22c55e"
-                    strokeWidth={isPhoneChart ? 1.8 : 2}
-                    dot={false}
-                  />
+                  {metricTypes.map((metricType, index) => {
+                    const unit = metricUnits.get(metricType);
+                    const metricName = unit ? `${metricType} (${unit})` : metricType;
+
+                    return (
+                      <Line
+                        key={metricType}
+                        yAxisId="metrics"
+                        type="monotone"
+                        dataKey={metricType}
+                        name={metricName}
+                        stroke={lineColors[index % lineColors.length]}
+                        strokeWidth={isPhoneChart ? 1.8 : 2}
+                        dot={false}
+                        connectNulls
+                      />
+                    );
+                  })}
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -454,20 +461,17 @@ export function DeviceDetailPage() {
                     Timestamp
                   </th>
                   <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Temperature
+                    Metric
                   </th>
                   <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Humidity
-                  </th>
-                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                    Energy Usage
+                    Value
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-800">
                 {latestMeasurements.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-3 sm:px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                    <td colSpan={3} className="px-3 sm:px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                       No measurements yet
                     </td>
                   </tr>
@@ -480,18 +484,13 @@ export function DeviceDetailPage() {
                         })}
                       </td>
                       <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
-                        <span className="text-red-600 font-medium">
-                          {m.temperature.toFixed(1)}°C
+                        <span className="text-gray-900 dark:text-gray-100 font-medium">
+                          {m.metricType}
                         </span>
                       </td>
                       <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
                         <span className="text-blue-600 font-medium">
-                          {m.humidity.toFixed(1)}%
-                        </span>
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm">
-                        <span className="text-green-600 font-medium">
-                          {m.energyUsage.toFixed(2)} kWh
+                          {m.value.toFixed(2)}{m.unit ? ` ${m.unit}` : ''}
                         </span>
                       </td>
                     </tr>
