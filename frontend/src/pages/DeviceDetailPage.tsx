@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import type { Device, Measurement } from '../types';
 import { deviceService } from '../services/deviceService';
 import { measurementService } from '../services/measurementService';
@@ -24,6 +25,7 @@ type TimeFilter = '24h' | '7d' | '1m' | '1y' | 'all';
 export function DeviceDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user, logout } = useAuth();
+  const { isDark } = useTheme();
   const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   
   const [device, setDevice] = useState<Device | null>(null);
@@ -197,7 +199,20 @@ export function DeviceDetailPage() {
     }));
 
   const metricTypes = Array.from(new Set(sortedMeasurements.map((m) => m.metricType))).sort();
-  const lineColors = ['#ef4444', '#3b82f6', '#22c55e'];
+  const chartColorPalette = [
+    'var(--color-red-500)',
+    'var(--color-blue-500)',
+    'var(--color-emerald-500)',
+    'var(--color-amber-500)',
+    'var(--color-violet-500)',
+    'var(--color-cyan-500)',
+    'var(--color-pink-500)',
+    'var(--color-lime-500)',
+    'var(--color-orange-500)',
+    'var(--color-fuchsia-500)',
+    'var(--color-teal-500)',
+    'var(--color-indigo-500)',
+  ];
 
   // Latest measurements for table
   const latestMeasurements = [...measurements].sort(
@@ -409,6 +424,14 @@ export function DeviceDetailPage() {
                     width={isPhoneChart ? 40 : 45}
                   />
                   <Tooltip
+                    contentStyle={{
+                      backgroundColor: isDark ? 'var(--color-gray-900)' : 'var(--color-white)',
+                      borderColor: isDark ? 'var(--color-gray-700)' : 'var(--color-gray-200)',
+                      color: isDark ? 'var(--color-gray-100)' : 'var(--color-gray-900)',
+                    }}
+                    labelStyle={{
+                      color: isDark ? 'var(--color-gray-100)' : 'var(--color-gray-900)',
+                    }}
                     labelFormatter={(value) =>
                       new Date(Number(value)).toLocaleString('sv-SE', {
                         timeZone: userTimeZone,
@@ -433,7 +456,7 @@ export function DeviceDetailPage() {
                         type="monotone"
                         dataKey={metricType}
                         name={metricName}
-                        stroke={lineColors[index % lineColors.length]}
+                        stroke={chartColorPalette[index % chartColorPalette.length]}
                         strokeWidth={isPhoneChart ? 1.8 : 2}
                         dot={false}
                         connectNulls
@@ -453,7 +476,7 @@ export function DeviceDetailPage() {
               Measurements
             </h2>
           </div>
-          <div className="max-h-150 overflow-auto">
+          <div className="max-h-150 overflow-auto measurements-scrollbar">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50 dark:bg-gray-800/60">
                 <tr>
