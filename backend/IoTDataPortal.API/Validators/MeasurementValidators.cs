@@ -3,6 +3,18 @@ using IoTDataPortal.Models.DTOs;
 
 namespace IoTDataPortal.API.Validators;
 
+public class IngestMeasurementsDtoValidator : AbstractValidator<IngestMeasurementsDto>
+{
+    public IngestMeasurementsDtoValidator()
+    {
+        RuleFor(x => x.Measurements)
+            .NotEmpty().WithMessage("At least one measurement is required");
+
+        RuleForEach(x => x.Measurements)
+            .SetValidator(new CreateMetricValueDtoValidator());
+    }
+}
+
 public class CreateMeasurementDtoValidator : AbstractValidator<CreateMeasurementDto>
 {
     public CreateMeasurementDtoValidator()

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using IoTDataPortal.Models.Data;
 using IoTDataPortal.Models.DTOs;
 using IoTDataPortal.Models.Entities;
@@ -23,6 +24,18 @@ public class DevicesController : ControllerBase
     private string GetUserId() => User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
         ?? throw new UnauthorizedAccessException("User not authenticated");
 
+    private static string GenerateApiKey() =>
+        Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();
+
+    private static DeviceDto ToDto(Device d) => new()
+    {
+        Id = d.Id,
+        Name = d.Name,
+        Location = d.Location,
+        CreatedAt = d.CreatedAt,
+        ApiKey = d.ApiKey
+    };
+
     [HttpGet]
     public async Task<ActionResult<IEnumerable<DeviceDto>>> GetDevices()
     {
@@ -35,7 +48,8 @@ public class DevicesController : ControllerBase
                 Id = d.Id,
                 Name = d.Name,
                 Location = d.Location,
-                CreatedAt = d.CreatedAt
+                CreatedAt = d.CreatedAt,
+                ApiKey = d.ApiKey
             })
             .ToListAsync();
 
@@ -49,13 +63,6 @@ public class DevicesController : ControllerBase
         
         var device = await _context.Devices
             .Where(d => d.Id == id && d.OwnerId == userId)
-            .Select(d => new DeviceDto
-            {
-                Id = d.Id,
-                Name = d.Name,
-                Location = d.Location,
-                CreatedAt = d.CreatedAt
-            })
             .FirstOrDefaultAsync();
 
         if (device == null)
@@ -63,7 +70,7 @@ public class DevicesController : ControllerBase
             return NotFound(new { message = "Device not found" });
         }
 
-        return Ok(device);
+        return Ok(ToDto(device));
     }
 
     [HttpPost]
@@ -77,21 +84,33 @@ public class DevicesController : ControllerBase
             Name = dto.Name,
             Location = dto.Location,
             OwnerId = userId,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ApiKey = GenerateApiKey()
         };
 
         _context.Devices.Add(device);
         await _context.SaveChangesAsync();
 
-        var deviceDto = new DeviceDto
-        {
-            Id = device.Id,
-            Name = device.Name,
-            Location = device.Location,
-            CreatedAt = device.CreatedAt
-        };
+        return CreatedAtAction(nameof(GetDevice), new { id = device.Id }, ToDto(device));
+    }
 
-        return CreatedAtAction(nameof(GetDevice), new { id = device.Id }, deviceDto);
+    [HttpPost("{id}/regenerate-api-key")]
+    public async Task<ActionResult<DeviceDto>> RegenerateApiKey(Guid id)
+    {
+        var userId = GetUserId();
+
+        var device = await _context.Devices
+            .FirstOrDefaultAsync(d => d.Id == id && d.OwnerId == userId);
+
+        if (device == null)
+        {
+            return NotFound(new { message = "Device not found" });
+        }
+
+        device.ApiKey = GenerateApiKey();
+        await _context.SaveChangesAsync();
+
+        return Ok(ToDto(device));
     }
 
     [HttpDelete("{id}")]

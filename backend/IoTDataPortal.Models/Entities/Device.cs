@@ -21,4 +21,8 @@ public class Device
     public ICollection<Measurement> Measurements { get; set; } = new List<Measurement>();
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    [Required]
+    [MaxLength(64)]
+    public string ApiKey { get; set; } = string.Empty;
 }

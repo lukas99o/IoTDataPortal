@@ -12,4 +12,5 @@ public class DeviceDto
     public string Name { get; set; } = string.Empty;
     public string? Location { get; set; }
     public DateTime CreatedAt { get; set; }
+    public string ApiKey { get; set; } = string.Empty;
 }

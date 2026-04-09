@@ -20,4 +20,9 @@ export const deviceService = {
   delete: async (id: string): Promise<void> => {
     await api.delete(`/devices/${id}`);
   },
+
+  regenerateApiKey: async (id: string): Promise<Device> => {
+    const response = await api.post<Device>(`/devices/${id}/regenerate-api-key`);
+    return response.data;
+  },
 };

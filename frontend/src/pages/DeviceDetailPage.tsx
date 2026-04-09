@@ -18,6 +18,7 @@ import { deviceService } from '../services/deviceService';
 import { measurementService } from '../services/measurementService';
 import { AppNavbar } from '../components/AppNavbar';
 import { Seo } from '../components/Seo';
+import { ConnectDeviceModal } from '../components/ConnectDeviceModal';
 import { parseApiTimestamp } from '../utils/dateTime';
 
 type TimeFilter = '24h' | '7d' | '1m' | '1y' | 'all';
@@ -37,6 +38,7 @@ export function DeviceDetailPage() {
   const [isSimulating, setIsSimulating] = useState(false);
   const [isGeneratingHistory, setIsGeneratingHistory] = useState(false);
   const [isPhoneChart, setIsPhoneChart] = useState(false);
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(max-width: 639px)');
@@ -352,21 +354,30 @@ export function DeviceDetailPage() {
               </button>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full lg:w-auto">
+            <div className="flex flex-col gap-2 w-full lg:w-auto">
               <button
-                onClick={handleSimulate}
-                disabled={isSimulating}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 text-sm cursor-pointer disabled:cursor-not-allowed w-full"
+                onClick={() => setIsConnectModalOpen(true)}
+                className="px-5 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-semibold cursor-pointer w-full shadow-sm"
               >
-                {isSimulating ? 'Simulating...' : '⚡ Simulate Measurement'}
+                🔌 Connect Real Device
               </button>
-              <button
-                onClick={handleGenerateHistory}
-                disabled={isGeneratingHistory}
-                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 text-sm cursor-pointer disabled:cursor-not-allowed w-full"
-              >
-                {isGeneratingHistory ? 'Generating...' : '📊 Generate History'}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSimulate}
+                  disabled={isSimulating}
+                  className="flex-1 px-3 py-1.5 text-xs text-gray-400 dark:text-gray-500 bg-transparent border border-gray-200 dark:border-gray-700 rounded hover:text-gray-600 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-colors"
+                >
+                  {isSimulating ? 'Simulating...' : '⚡ Simulate'}
+                </button>
+                <button
+                  onClick={handleGenerateHistory}
+                  disabled={isGeneratingHistory}
+                  className="flex-1 px-3 py-1.5 text-xs text-gray-400 dark:text-gray-500 bg-transparent border border-gray-200 dark:border-gray-700 rounded hover:text-gray-600 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed transition-colors"
+                >
+                  {isGeneratingHistory ? 'Generating...' : '📊 Generate History'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 dark:text-gray-600 text-center">Demo options</p>
             </div>
           </div>
 
@@ -524,6 +535,14 @@ export function DeviceDetailPage() {
           </div>
         </div>
       </main>
+
+      {isConnectModalOpen && device && (
+        <ConnectDeviceModal
+          device={device}
+          onClose={() => setIsConnectModalOpen(false)}
+          onDeviceUpdated={(updated) => setDevice(updated)}
+        />
+      )}
     </div>
   );
 }

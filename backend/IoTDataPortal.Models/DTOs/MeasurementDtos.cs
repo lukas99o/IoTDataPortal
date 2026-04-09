@@ -1,5 +1,10 @@
 namespace IoTDataPortal.Models.DTOs;
 
+public class IngestMeasurementsDto
+{
+    public List<CreateMetricValueDto> Measurements { get; set; } = [];
+}
+
 public class CreateMeasurementDto
 {
     public Guid DeviceId { get; set; }

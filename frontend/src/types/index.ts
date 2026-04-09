@@ -17,6 +17,7 @@ export interface Device {
   name: string;
   location?: string;
   createdAt: string;
+  apiKey: string;
 }
 
 export interface CreateDevice {

@@ -38,5 +38,9 @@ public class ApplicationDbContext : IdentityDbContext<User>
 
         builder.Entity<Device>()
             .HasIndex(d => d.OwnerId);
+
+        builder.Entity<Device>()
+            .HasIndex(d => d.ApiKey)
+            .IsUnique();
     }
 }

@@ -124,4 +124,53 @@ public class MeasurementsController : ControllerBase
 
         return CreatedAtAction(nameof(GetMeasurements), new { deviceId = dto.DeviceId }, measurementDtos);
     }
+
+    [HttpPost("ingest")]
+    [AllowAnonymous]
+    public async Task<ActionResult<IEnumerable<MeasurementDto>>> IngestMeasurements(
+        [FromHeader(Name = "X-Api-Key")] string? apiKey,
+        [FromBody] IngestMeasurementsDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            return Unauthorized(new { message = "X-Api-Key header is required" });
+        }
+
+        var device = await _context.Devices.FirstOrDefaultAsync(d => d.ApiKey == apiKey);
+        if (device == null)
+        {
+            return Unauthorized(new { message = "Invalid API key" });
+        }
+
+        var timestamp = DateTime.UtcNow;
+        var measurements = dto.Measurements.Select(m => new Measurement
+        {
+            Id = Guid.NewGuid(),
+            DeviceId = device.Id,
+            Timestamp = timestamp,
+            MetricType = m.MetricType.Trim(),
+            Value = m.Value,
+            Unit = string.IsNullOrWhiteSpace(m.Unit) ? null : m.Unit.Trim()
+        }).ToList();
+
+        _context.Measurements.AddRange(measurements);
+        await _context.SaveChangesAsync();
+
+        var measurementDtos = measurements.Select(m => new MeasurementDto
+        {
+            Id = m.Id,
+            DeviceId = m.DeviceId,
+            Timestamp = m.Timestamp,
+            MetricType = m.MetricType,
+            Value = m.Value,
+            Unit = m.Unit
+        }).ToList();
+
+        foreach (var measurementDto in measurementDtos)
+        {
+            await _hubContext.Clients.Group($"device_{device.Id}").SendAsync("ReceiveMeasurement", measurementDto);
+        }
+
+        return CreatedAtAction(nameof(GetMeasurements), new { deviceId = device.Id }, measurementDtos);
+    }
 }
