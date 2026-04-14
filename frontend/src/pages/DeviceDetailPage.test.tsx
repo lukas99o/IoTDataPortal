@@ -132,7 +132,7 @@ describe('DeviceDetailPage', () => {
 
     expect(await screen.findByText('Kitchen Sensor')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: '⚡ Simulate Measurement' }));
+    fireEvent.click(screen.getByRole('button', { name: '⚡ Simulate' }));
 
     await waitFor(() => {
       expect(simulateMock).toHaveBeenCalledWith('device-1', 1);

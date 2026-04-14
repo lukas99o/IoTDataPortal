@@ -96,14 +96,14 @@ export function ConnectDeviceModal({ device, onClose, onDeviceUpdated }: Connect
               <button
                 onClick={() => setShowKey((v) => !v)}
                 title={showKey ? 'Hide key' : 'Show key'}
-                className="flex-shrink-0 px-2 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
+                className="shrink-0 px-2 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 cursor-pointer"
               >
                 {showKey ? '🙈' : '👁'}
               </button>
               <button
                 onClick={() => copyToClipboard(device.apiKey, 'key')}
                 title="Copy key"
-                className="flex-shrink-0 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 rounded border border-gray-200 dark:border-gray-700 cursor-pointer whitespace-nowrap"
+                className="shrink-0 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 rounded border border-gray-200 dark:border-gray-700 cursor-pointer whitespace-nowrap"
               >
                 {copied === 'key' ? '✓ Copied' : 'Copy'}
               </button>
@@ -128,7 +128,7 @@ export function ConnectDeviceModal({ device, onClose, onDeviceUpdated }: Connect
             <ol className="space-y-4 text-sm">
               <li>
                 <div className="flex items-start gap-2">
-                  <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">1</span>
+                  <span className="shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">1</span>
                   <div className="min-w-0">
                     <p className="font-medium text-gray-800 dark:text-gray-200">
                       Download the agent script
@@ -143,7 +143,7 @@ export function ConnectDeviceModal({ device, onClose, onDeviceUpdated }: Connect
 
               <li>
                 <div className="flex items-start gap-2">
-                  <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">2</span>
+                  <span className="shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">2</span>
                   <div className="min-w-0">
                     <p className="font-medium text-gray-800 dark:text-gray-200 mb-1">
                       Install Python dependencies
@@ -170,7 +170,7 @@ export function ConnectDeviceModal({ device, onClose, onDeviceUpdated }: Connect
 
               <li>
                 <div className="flex items-start gap-2">
-                  <span className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">3</span>
+                  <span className="shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">3</span>
                   <div className="min-w-0">
                     <p className="font-medium text-gray-800 dark:text-gray-200 mb-1">
                       Run the agent
