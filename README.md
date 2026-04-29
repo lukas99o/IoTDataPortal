@@ -80,24 +80,26 @@ Devices (auth required):
 - `DELETE /api/devices/{id}`
 
 Measurements (auth required):
-- `GET /api/measurements?deviceId=<guid>&from=<utc>&to=<utc>`
+- `GET /api/measurements?deviceId=<guid>&from=<utc>&to=<utc>&metricType=<string>`
 - `POST /api/measurements`
 
-Payload example:
+Device ingest (no user auth — API key only):
+- `POST /api/measurements/ingest`
+  - Header: `X-Api-Key: <device-api-key>`
+  - Body:
 
 ```json
 {
-  "deviceId": "00000000-0000-0000-0000-000000000000",
-  "temperature": 23.4,
-  "humidity": 51.2,
-  "energyUsage": 1.08
+  "measurements": [
+    { "metricType": "temperature", "value": 24.3, "unit": "\u00b0C" },
+    { "metricType": "humidity",    "value": 58.1, "unit": "%" }
+  ]
 }
 ```
 
-Validation:
-- Temperature: `-50` to `100`
-- Humidity: `0` to `100`
-- EnergyUsage: `>= 0`
+  - `metricType`: any string up to 100 chars (e.g. `temperature`, `humidity`, `pressure`, `light`, `soil_moisture`, `battery`)
+  - `value`: any finite number
+  - `unit`: optional string up to 20 chars
 
 Simulator (auth required):
 - `POST /api/simulator/generate?deviceId=<guid>&count=1`
@@ -133,11 +135,29 @@ npm run build
 
 ## Device Connectivity
 
-Any device or gateway that can send HTTPS JSON with Bearer JWT can post to `POST /api/measurements`.
+Any device that can send HTTPS POST requests can push telemetry to the portal.
 
-Recommended setup for real homes/installations:
-- Device(s) -> edge gateway (Home Assistant / Node-RED / custom agent) -> API
-- Register each physical unit in `/api/devices` and send measurements with its `deviceId`
+### Quick start (ESP32, Raspberry Pi, MicroPython, or any HTTP client)
+
+1. Register a device in the portal to obtain a per-device **API key**.
+2. Send readings to `POST /api/measurements/ingest` with the `X-Api-Key` header.
+3. Batch multiple sensor metrics in a single request to reduce overhead.
+
+```http
+POST https://yourapi.com/api/measurements/ingest
+X-Api-Key: your-device-api-key
+Content-Type: application/json
+
+{
+  "measurements": [
+    { "metricType": "temperature", "value": 24.3, "unit": "\u00b0C" },
+    { "metricType": "humidity",    "value": 58.1, "unit": "%"  },
+    { "metricType": "battery",     "value": 87.0, "unit": "%"  }
+  ]
+}
+```
+
+Metrics are schema-free — use any `metricType` string up to 100 characters. Data appears in real time on the device dashboard via SignalR as soon as the first request arrives.
 
 ## License
 

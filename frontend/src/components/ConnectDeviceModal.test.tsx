@@ -61,15 +61,15 @@ describe('ConnectDeviceModal', () => {
 
   it('renders all three setup steps', () => {
     renderModal();
-    expect(screen.getByText('Download the agent script')).toBeInTheDocument();
-    expect(screen.getByText('Install Python dependencies')).toBeInTheDocument();
-    expect(screen.getByText('Run the agent')).toBeInTheDocument();
+    expect(screen.getByText('Add an HTTP client to your firmware')).toBeInTheDocument();
+    expect(screen.getByText('Flash the API key into your device')).toBeInTheDocument();
+    expect(screen.getByText('POST sensor readings to the ingest endpoint')).toBeInTheDocument();
   });
 
-  it('includes the agent command with the device api key', () => {
+  it('includes the example payload in the modal', () => {
     renderModal();
     expect(screen.getByText((_, el) =>
-      el?.tagName === 'CODE' && (el.textContent ?? '').includes(mockDevice.apiKey)
+      el?.tagName === 'PRE' && (el.textContent ?? '').includes('measurements')
     )).toBeInTheDocument();
   });
 
@@ -115,19 +115,19 @@ describe('ConnectDeviceModal', () => {
     );
   });
 
-  it('copies the agent command to the clipboard', async () => {
+  it('copies the example payload to the clipboard', async () => {
     renderModal();
-    // Two "Copy" buttons: first is the key, second is the command
+    // Two "Copy" buttons: first is the key, second is the payload
     const copyButtons = screen.getAllByRole('button', { name: 'Copy' });
     fireEvent.click(copyButtons[1]);
     await waitFor(() =>
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-        expect.stringContaining(mockDevice.apiKey)
+        expect.stringContaining('measurements')
       )
     );
   });
 
-  it('shows "✓ Copied" after copying the command', async () => {
+  it('shows "✓ Copied" after copying the payload', async () => {
     renderModal();
     const copyButtons = screen.getAllByRole('button', { name: 'Copy' });
     fireEvent.click(copyButtons[1]);
