@@ -1,3 +1,4 @@
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -127,6 +128,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<MeasurementHub>("/measurementHub");
+app.MapGet("/health", () => Results.Ok("Up an runnin!"));
 
 using (var scope = app.Services.CreateScope())
 {
