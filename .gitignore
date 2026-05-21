@@ -36,4 +36,3 @@ lerna-debug.log*
 # Misc
 *.local
 .DS_Store
-*.sln
