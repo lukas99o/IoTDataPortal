@@ -133,18 +133,29 @@ app.MapControllers();
 app.MapHub<MeasurementHub>("/measurementHub");
 app.MapGet("/health", () => Results.Ok("Up an runnin!"));
 
-using (var scope = app.Services.CreateScope())
+app.Run(); // <-- Flytta hit INNAN migreringen
+
+var scope = app.Services.CreateScope();
+_ = Task.Run(async () =>
 {
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    if (app.Environment.IsEnvironment("Testing"))
+    try
     {
-        db.Database.EnsureCreated();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        if (app.Environment.IsEnvironment("Testing"))
+            db.Database.EnsureCreated();
+        else
+            db.Database.Migrate();
     }
-    else
+    catch (Exception ex)
     {
-        db.Database.Migrate();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Migration failed");
     }
-}
+    finally
+    {
+        scope.Dispose();
+    }
+});
 
 app.Run();
 
