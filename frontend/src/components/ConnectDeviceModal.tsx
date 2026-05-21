@@ -11,17 +11,26 @@ interface ConnectDeviceModalProps {
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 const INGEST_URL = `${API_URL}/api/measurements/ingest`;
 
+const EXAMPLE_PAYLOAD = `POST ${INGEST_URL}
+X-Api-Key: YOUR_DEVICE_API_KEY
+Content-Type: application/json
+
+{
+  "measurements": [
+    { "metricType": "temperature", "value": 24.3, "unit": "°C" },
+    { "metricType": "humidity",    "value": 58.1, "unit": "%" }
+  ]
+}`;
+
 export function ConnectDeviceModal({ device, onClose, onDeviceUpdated }: ConnectDeviceModalProps) {
   const [showKey, setShowKey] = useState(false);
-  const [copied, setCopied] = useState<'key' | 'cmd' | null>(null);
+  const [copied, setCopied] = useState<'key' | 'payload' | null>(null);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const maskedKey = device.apiKey.slice(0, 8) + '••••••••••••••••••••••••' + device.apiKey.slice(-4);
 
-  const agentCommand = `python iot_agent.py --api-url "${INGEST_URL}" --api-key "${device.apiKey}"`;
-
-  const copyToClipboard = async (text: string, type: 'key' | 'cmd') => {
+  const copyToClipboard = async (text: string, type: 'key' | 'payload') => {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(type);
@@ -40,7 +49,7 @@ export function ConnectDeviceModal({ device, onClose, onDeviceUpdated }: Connect
   };
 
   const handleRegenerate = async () => {
-    if (!confirm('Regenerating the API key will disconnect any running agents. Continue?')) return;
+    if (!confirm('Regenerating the API key will invalidate the key currently flashed to your device. Continue?')) return;
     try {
       setError(null);
       setIsRegenerating(true);
@@ -87,7 +96,7 @@ export function ConnectDeviceModal({ device, onClose, onDeviceUpdated }: Connect
               Device API Key
             </h4>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-              The agent uses this key to authenticate. Keep it secret — it grants write access to this device.
+              Your firmware uses this key to authenticate. Keep it secret — it grants write access to this device.
             </p>
             <div className="flex items-center gap-2">
               <code className="flex-1 break-all text-xs bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-3 py-2 rounded border border-gray-200 dark:border-gray-700 font-mono min-w-0">
@@ -122,7 +131,7 @@ export function ConnectDeviceModal({ device, onClose, onDeviceUpdated }: Connect
           {/* Setup instructions */}
           <div>
             <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wide">
-              Agent Setup
+              Firmware Setup
             </h4>
 
             <ol className="space-y-4 text-sm">
@@ -131,11 +140,12 @@ export function ConnectDeviceModal({ device, onClose, onDeviceUpdated }: Connect
                   <span className="shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">1</span>
                   <div className="min-w-0">
                     <p className="font-medium text-gray-800 dark:text-gray-200">
-                      Download the agent script
+                      Add an HTTP client to your firmware
                     </p>
                     <p className="text-gray-500 dark:text-gray-400 mt-0.5">
-                      Save <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">iot_agent.py</code> from the project's{' '}
-                      <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">agent/</code> folder onto the machine you want to monitor.
+                      Any device that can send HTTPS POST requests works — ESP32, Raspberry Pi, Arduino with WiFi shield, or a custom gateway. Use your platform's preferred HTTP library (e.g.{' '}
+                      <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">HTTPClient</code> for Arduino/ESP32,{' '}
+                      <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">requests</code> for MicroPython).
                     </p>
                   </div>
                 </div>
@@ -145,24 +155,14 @@ export function ConnectDeviceModal({ device, onClose, onDeviceUpdated }: Connect
                 <div className="flex items-start gap-2">
                   <span className="shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">2</span>
                   <div className="min-w-0">
-                    <p className="font-medium text-gray-800 dark:text-gray-200 mb-1">
-                      Install Python dependencies
+                    <p className="font-medium text-gray-800 dark:text-gray-200">
+                      Flash the API key into your device
                     </p>
-                    <code className="block bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-3 py-2 rounded text-xs font-mono border border-gray-200 dark:border-gray-700 break-all">
-                      pip install psutil requests
-                    </code>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1 text-xs">
-                      For CPU/GPU temperatures on Windows, also install{' '}
-                      <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">wmi</code> and run{' '}
-                      <a
-                        href="https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/releases"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 dark:text-blue-400 hover:underline"
-                      >
-                        LibreHardwareMonitor
-                      </a>{' '}
-                      in the background.
+                    <p className="text-gray-500 dark:text-gray-400 mt-0.5">
+                      Store the key above in your firmware (e.g. a{' '}
+                      <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">#define</code>,{' '}
+                      <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">secrets.h</code>, or environment variable). Send it on every request as the{' '}
+                      <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">X-Api-Key</code> header.
                     </p>
                   </div>
                 </div>
@@ -173,21 +173,21 @@ export function ConnectDeviceModal({ device, onClose, onDeviceUpdated }: Connect
                   <span className="shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold mt-0.5">3</span>
                   <div className="min-w-0">
                     <p className="font-medium text-gray-800 dark:text-gray-200 mb-1">
-                      Run the agent
+                      POST sensor readings to the ingest endpoint
                     </p>
                     <div className="relative">
-                      <code className="block bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-3 py-2 rounded text-xs font-mono border border-gray-200 dark:border-gray-700 break-all pr-20">
-                        {agentCommand}
-                      </code>
+                      <pre className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-3 py-2 rounded text-xs font-mono border border-gray-200 dark:border-gray-700 overflow-x-auto pr-16 whitespace-pre">
+                        {EXAMPLE_PAYLOAD}
+                      </pre>
                       <button
-                        onClick={() => copyToClipboard(agentCommand, 'cmd')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-xs bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer whitespace-nowrap"
+                        onClick={() => copyToClipboard(EXAMPLE_PAYLOAD, 'payload')}
+                        className="absolute right-2 top-2 text-xs bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer whitespace-nowrap"
                       >
-                        {copied === 'cmd' ? '✓ Copied' : 'Copy'}
+                        {copied === 'payload' ? '✓ Copied' : 'Copy'}
                       </button>
                     </div>
                     <p className="text-gray-500 dark:text-gray-400 mt-1 text-xs">
-                      Add <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">--interval 10</code> to change the reporting interval (seconds, default: 10).
+                      Replace <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">YOUR_DEVICE_API_KEY</code> with the key above. You can send multiple metrics in a single request.
                     </p>
                   </div>
                 </div>
@@ -196,7 +196,14 @@ export function ConnectDeviceModal({ device, onClose, onDeviceUpdated }: Connect
           </div>
 
           <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded p-3 text-xs text-blue-700 dark:text-blue-300">
-            <strong>What gets reported:</strong> CPU load %, RAM usage %, and CPU/GPU temperatures when available. Data streams live into the chart above as soon as the agent connects.
+            <strong>Supported metrics:</strong> Any string up to 100 characters (e.g.{' '}
+            <code className="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">temperature</code>,{' '}
+            <code className="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">humidity</code>,{' '}
+            <code className="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">pressure</code>,{' '}
+            <code className="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">light</code>,{' '}
+            <code className="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">soil_moisture</code>,{' '}
+            <code className="bg-blue-100 dark:bg-blue-900/40 px-1 rounded">battery</code>
+            ). Unit is optional. Data streams live into the chart as soon as the first request arrives.
           </div>
         </div>
 
