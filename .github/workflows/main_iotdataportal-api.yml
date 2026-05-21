@@ -1,84 +1,84 @@
-name: Build and deploy ASP.Net Core API to Azure App
+# name: Build and deploy ASP.Net Core API to Azure App
 
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+# on:
+#   push:
+#     branches:
+#       - main
+#   workflow_dispatch:
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
+# jobs:
+#   test:
+#     runs-on: ubuntu-latest
+#     permissions:
+#       contents: read
 
-    steps:
-      - uses: actions/checkout@v4
+#     steps:
+#       - uses: actions/checkout@v4
 
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.x'
+#       - name: Set up .NET Core
+#         uses: actions/setup-dotnet@v4
+#         with:
+#           dotnet-version: '10.x'
 
-      - name: Run backend tests
-        run: dotnet test backend/IoTDataPortal.Tests/IoTDataPortal.Tests.csproj --configuration Release
+#       - name: Run backend tests
+#         run: dotnet test backend/IoTDataPortal.Tests/IoTDataPortal.Tests.csproj --configuration Release
 
-  build:
-    runs-on: ubuntu-latest
-    needs: test
-    permissions:
-      contents: read
+#   build:
+#     runs-on: ubuntu-latest
+#     needs: test
+#     permissions:
+#       contents: read
 
-    steps:
-      # 1️⃣ Checkout koden
-      - uses: actions/checkout@v4
+#     steps:
+#       # 1️⃣ Checkout koden
+#       - uses: actions/checkout@v4
 
-      # 2️⃣ Installera .NET SDK
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.x'
+#       # 2️⃣ Installera .NET SDK
+#       - name: Set up .NET Core
+#         uses: actions/setup-dotnet@v4
+#         with:
+#           dotnet-version: '10.x'
 
-      # 3️⃣ Rensa publish-mappen (för att ta bort gamla filer/testprojekt)
-      - name: Clean publish folder
-        run: rm -rf ./publish
+#       # 3️⃣ Rensa publish-mappen (för att ta bort gamla filer/testprojekt)
+#       - name: Clean publish folder
+#         run: rm -rf ./publish
 
-      # 4️⃣ Bygg API-projektet
-      - name: Build API project
-        run: dotnet build backend/IoTDataPortal.API/IoTDataPortal.API.csproj --configuration Release
+#       # 4️⃣ Bygg API-projektet
+#       - name: Build API project
+#         run: dotnet build backend/IoTDataPortal.API/IoTDataPortal.API.csproj --configuration Release
 
-      # 5️⃣ Publicera API-projektet
-      - name: Publish API project
-        run: dotnet publish backend/IoTDataPortal.API/IoTDataPortal.API.csproj -c Release -o ./publish
+#       # 5️⃣ Publicera API-projektet
+#       - name: Publish API project
+#         run: dotnet publish backend/IoTDataPortal.API/IoTDataPortal.API.csproj -c Release -o ./publish
 
-      # 6️⃣ Lista publicerade filer (kontroll)
-      - name: List published files
-        run: ls -R ./publish
+#       # 6️⃣ Lista publicerade filer (kontroll)
+#       - name: List published files
+#         run: ls -R ./publish
 
-      # 7️⃣ Ladda upp artefakten
-      - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v4
-        with:
-          name: .net-app
-          path: ./publish
+#       # 7️⃣ Ladda upp artefakten
+#       - name: Upload artifact for deployment job
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: .net-app
+#           path: ./publish
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
+#   deploy:
+#     runs-on: ubuntu-latest
+#     needs: build
 
-    steps:
-      # 1️⃣ Ladda ner artefakten
-      - name: Download artifact from build job
-        uses: actions/download-artifact@v4
-        with:
-          name: .net-app
-          path: ./publish
+#     steps:
+#       # 1️⃣ Ladda ner artefakten
+#       - name: Download artifact from build job
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: .net-app
+#           path: ./publish
 
-      # 2️⃣ Deploy till Azure Web App
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'IoTDataPortal-Api'
-          slot-name: 'Production'
-          package: ./publish
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_677AC178F9824B23B8C03B8D32E650A5 }}
+#       # 2️⃣ Deploy till Azure Web App
+#       - name: Deploy to Azure Web App
+#         uses: azure/webapps-deploy@v3
+#         with:
+#           app-name: 'IoTDataPortal-Api'
+#           slot-name: 'Production'
+#           package: ./publish
+#           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_677AC178F9824B23B8C03B8D32E650A5 }}
