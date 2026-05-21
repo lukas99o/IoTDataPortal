@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - backend/**
+      - .github/workflows/main_iotdataportal-api-railway.yml
   workflow_dispatch:
 
 jobs:
@@ -11,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - name: Checkout
@@ -19,16 +25,16 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.x'
+          dotnet-version: '10.0.x'
 
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore IoTDataPortal.slnx
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
+        run: dotnet build IoTDataPortal.slnx --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test --configuration Release --no-build
+        run: dotnet test IoTDataPortal.Tests/IoTDataPortal.Tests.csproj --configuration Release --no-build --verbosity normal
         # Railway deploys automatically via its native GitHub integration.
         # This workflow acts as a CI gate: if build/tests fail, the commit
         # is marked failed and Railway will not deploy.
