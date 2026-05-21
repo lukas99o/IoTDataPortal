@@ -20,7 +20,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         {
             var testConfig = new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = "Server=(localdb)\\mssqllocaldb;Database=IgnoredForTesting;Trusted_Connection=True;",
+                ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Port=5432;Database=ignored_for_testing;Username=postgres;Password=postgres",
                 ["Jwt:Secret"] = "this-is-a-very-long-test-secret-key-123456",
                 ["Jwt:Issuer"] = "test-issuer",
                 ["Jwt:Audience"] = "test-audience",

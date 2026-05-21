@@ -20,7 +20,7 @@ builder.WebHost.UseUrls("http://0.0.0.0:8080");
 
 // Add DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add Identity
 builder.Services.AddIdentity<User, IdentityRole>(options =>
@@ -133,29 +133,18 @@ app.MapControllers();
 app.MapHub<MeasurementHub>("/measurementHub");
 app.MapGet("/health", () => Results.Ok("Up an runnin!"));
 
-app.Run(); // <-- Flytta hit INNAN migreringen
-
-var scope = app.Services.CreateScope();
-_ = Task.Run(async () =>
+using (var scope = app.Services.CreateScope())
 {
-    try
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    if (app.Environment.IsEnvironment("Testing"))
     {
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        if (app.Environment.IsEnvironment("Testing"))
-            db.Database.EnsureCreated();
-        else
-            db.Database.Migrate();
+        db.Database.EnsureCreated();
     }
-    catch (Exception ex)
+    else
     {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Migration failed");
+        db.Database.Migrate();
     }
-    finally
-    {
-        scope.Dispose();
-    }
-});
+}
 
 app.Run();
 
