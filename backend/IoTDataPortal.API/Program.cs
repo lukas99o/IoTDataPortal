@@ -16,7 +16,10 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // Force API to listen on port 8080
-builder.WebHost.UseUrls("http://0.0.0.0:8080");
+if (builder.Environment.IsProduction())
+{
+    builder.WebHost.UseUrls("http://localhost:8080");
+}
 
 // Add DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

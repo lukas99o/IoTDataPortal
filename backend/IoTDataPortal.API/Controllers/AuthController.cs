@@ -18,15 +18,18 @@ public class AuthController : ControllerBase
     private readonly UserManager<User> _userManager;
     private readonly IConfiguration _configuration;
     private readonly IPasswordResetEmailService _passwordResetEmailService;
+    private readonly IHostEnvironment _hostEnvironment;
 
     public AuthController(
         UserManager<User> userManager,
         IConfiguration configuration,
-        IPasswordResetEmailService passwordResetEmailService)
+        IPasswordResetEmailService passwordResetEmailService,
+        IHostEnvironment hostEnvironment)
     {
         _userManager = userManager;
         _configuration = configuration;
         _passwordResetEmailService = passwordResetEmailService;
+        _hostEnvironment = hostEnvironment;
     }
 
     [HttpPost("register")]
@@ -56,7 +59,15 @@ public class AuthController : ControllerBase
         var encodedUserId = HttpUtility.UrlEncode(user.Id);
         var verificationLink = BuildFrontendUrl("verify-email", $"userId={encodedUserId}&token={encodedToken}");
 
-        await _passwordResetEmailService.SendEmailVerificationEmailAsync(user.Email!, verificationLink);
+        if (_hostEnvironment.IsProduction())
+        {
+            await _passwordResetEmailService.SendEmailVerificationEmailAsync(user.Email!, verificationLink);
+        }
+        else
+        {
+            user.EmailConfirmed = true;
+            await _userManager.UpdateAsync(user);
+        }
 
         return Ok(new RegisterResponseDto
         {
