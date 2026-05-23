@@ -96,8 +96,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<RegisterDtoValidator>();
 // Add Controllers
 builder.Services.AddControllers();
 
-// Add services
-builder.Services.AddScoped<IPasswordResetEmailService, PasswordResetEmailService>();
+// Add HttpClient for PasswordResetEmailService
+builder.Services.AddHttpClient<IPasswordResetEmailService, PasswordResetEmailService>();
 
 // Add SignalR
 builder.Services.AddSignalR();

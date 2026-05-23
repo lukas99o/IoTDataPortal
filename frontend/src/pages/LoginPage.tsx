@@ -114,10 +114,6 @@ export function LoginPage() {
           </p>
         </div>
 
-        <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 px-4 py-3 rounded text-sm">
-          Heads up: the API is hosted on Azure free tier. If it has been in standby, startup can take around 1 minute.
-        </div>
-
         {error && (
           <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded">
             <p>{error}</p>
