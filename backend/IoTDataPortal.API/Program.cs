@@ -1,5 +1,6 @@
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using DotNetEnv;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using IoTDataPortal.API.Hubs;
@@ -12,6 +13,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+
+if (string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Development", StringComparison.OrdinalIgnoreCase))
+{
+    // Load local .env values into process environment for development.
+    Env.Load();
+}
 
 var builder = WebApplication.CreateBuilder(args);
 

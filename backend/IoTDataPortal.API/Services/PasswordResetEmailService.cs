@@ -7,11 +7,13 @@ public class PasswordResetEmailService : IPasswordResetEmailService
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<PasswordResetEmailService> _logger;
+    private readonly IHostEnvironment _hostEnvironment;
 
-    public PasswordResetEmailService(IConfiguration configuration, ILogger<PasswordResetEmailService> logger)
+    public PasswordResetEmailService(IConfiguration configuration, ILogger<PasswordResetEmailService> logger, IHostEnvironment hostEnvironment)
     {
         _configuration = configuration;
         _logger = logger;
+        _hostEnvironment = hostEnvironment;
     }
 
     public async Task SendResetPasswordEmailAsync(string toEmail, string resetLink)
@@ -34,8 +36,8 @@ public class PasswordResetEmailService : IPasswordResetEmailService
         var enableSsl = bool.TryParse(_configuration["Smtp:EnableSsl"], out var configuredEnableSsl)
             ? configuredEnableSsl
             : true;
-        var username = _configuration["Smtp:Username"];
-        var password = _configuration["Smtp:Password"];
+        var username = GetSmtpCredential("Smtp:Username", "SmtpUsername");
+        var password = GetSmtpCredential("Smtp:Password", "SmtpPassword");
 
         using var client = new SmtpClient(host, port)
         {
@@ -65,7 +67,7 @@ public class PasswordResetEmailService : IPasswordResetEmailService
         await client.SendMailAsync(message);
     }
 
-    public async Task SendEmailVerificationEmailAsync(string toEmail, string verificationLink)
+    public async Task<bool> SendEmailVerificationEmailAsync(string toEmail, string verificationLink)
     {
         var host = _configuration["Smtp:Host"];
         var fromEmail = _configuration["Smtp:FromEmail"];
@@ -76,7 +78,7 @@ public class PasswordResetEmailService : IPasswordResetEmailService
                 "SMTP not configured. Verification email for {Email} was not sent. Verification link: {VerificationLink}",
                 toEmail,
                 verificationLink);
-            return;
+            return false;
         }
 
         var port = int.TryParse(_configuration["Smtp:Port"], out var configuredPort)
@@ -85,8 +87,8 @@ public class PasswordResetEmailService : IPasswordResetEmailService
         var enableSsl = bool.TryParse(_configuration["Smtp:EnableSsl"], out var configuredEnableSsl)
             ? configuredEnableSsl
             : true;
-        var username = _configuration["Smtp:Username"];
-        var password = _configuration["Smtp:Password"];
+        var username = GetSmtpCredential("Smtp:Username", "SmtpUsername");
+        var password = GetSmtpCredential("Smtp:Password", "SmtpPassword");
 
         using var client = new SmtpClient(host, port)
         {
@@ -114,5 +116,20 @@ public class PasswordResetEmailService : IPasswordResetEmailService
         message.To.Add(toEmail);
 
         await client.SendMailAsync(message);
+        return true;
+    }
+
+    private string? GetSmtpCredential(string configKey, string environmentKey)
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            var environmentValue = Environment.GetEnvironmentVariable(environmentKey);
+            if (!string.IsNullOrWhiteSpace(environmentValue))
+            {
+                return environmentValue;
+            }
+        }
+
+        return _configuration[configKey];
     }
 }

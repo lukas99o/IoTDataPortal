@@ -59,20 +59,20 @@ public class AuthController : ControllerBase
         var encodedUserId = HttpUtility.UrlEncode(user.Id);
         var verificationLink = BuildFrontendUrl("verify-email", $"userId={encodedUserId}&token={encodedToken}");
 
-        if (_hostEnvironment.IsProduction())
+        if (!await _passwordResetEmailService.SendEmailVerificationEmailAsync(user.Email!, verificationLink))
         {
-            await _passwordResetEmailService.SendEmailVerificationEmailAsync(user.Email!, verificationLink);
+            return Ok(new RegisterResponseDto
+            {
+                Message = "Registration successful, but failed to send verification email. Please contact Lukas99o@hotmail.com to verify your account. Include this verification link in your message: " + verificationLink
+            });
         }
         else
         {
-            user.EmailConfirmed = true;
-            await _userManager.UpdateAsync(user);
+            return Ok(new RegisterResponseDto
+            {
+                Message = "Registration successful. Please verify your email before signing in."
+            });
         }
-
-        return Ok(new RegisterResponseDto
-        {
-            Message = "Registration successful. Please verify your email before signing in."
-        });
     }
 
     [HttpPost("login")]
