@@ -35,7 +35,7 @@ public class AuthIntegrationTests : IClassFixture<CustomWebApplicationFactory>
         }
 
         var client = _factory.CreateClient();
-
+        
         var response = await client.PostAsJsonAsync("/api/auth/forgot-password", new ForgotPasswordDto
         {
             Email = email,
