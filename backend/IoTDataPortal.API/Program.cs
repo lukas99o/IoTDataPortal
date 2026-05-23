@@ -25,7 +25,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Force API to listen on port 8080
 if (builder.Environment.IsProduction())
 {
-    builder.WebHost.UseUrls("http://localhost:8080");
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.ListenAnyIP(8080);
+    });
 }
 
 // Add DbContext
