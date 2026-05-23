@@ -18,15 +18,20 @@ public class PasswordResetEmailService : IPasswordResetEmailService
         _logger = logger;
         _httpClient = httpClient;
 
-        var apiKey = _configuration["Brevo:ApiKey"]
-            ?? Environment.GetEnvironmentVariable("BrevoApiKey")
-            ?? throw new InvalidOperationException("Brevo API key is not configured");
+        var appsettingsApiKey = _configuration["Brevo:ApiKey"];
+        var environmentApiKey = Environment.GetEnvironmentVariable("BrevoApiKey");
 
-        if (string.IsNullOrWhiteSpace(apiKey))
+        if (appsettingsApiKey == null && environmentApiKey == null)
             throw new InvalidOperationException("Brevo API key is not configured");
 
         _httpClient.BaseAddress = new Uri("https://api.brevo.com/");
-        _httpClient.DefaultRequestHeaders.Add("api-key", apiKey);
+
+        if (!string.IsNullOrWhiteSpace(appsettingsApiKey))
+            _httpClient.DefaultRequestHeaders.Add("api-key", appsettingsApiKey);
+        else if (!string.IsNullOrWhiteSpace(environmentApiKey))
+            _httpClient.DefaultRequestHeaders.Add("api-key", environmentApiKey);
+        else 
+            throw new InvalidOperationException("Brevo API key is not configured");        
     }
 
     public async Task SendResetPasswordEmailAsync(string toEmail, string resetLink)
