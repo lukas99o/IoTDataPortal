@@ -158,7 +158,7 @@ using (var scope = app.Services.CreateScope())
         db.Database.Migrate();
     }
 }
-
+Console.WriteLine(builder.Configuration["Brevo:ApiKey"]);
 app.Run();
 
 // Make Program class accessible for integration tests
