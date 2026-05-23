@@ -35,6 +35,8 @@ jobs:
 
       - name: Test
         run: dotnet test IoTDataPortal.Tests/IoTDataPortal.Tests.csproj --configuration Release --no-build --verbosity normal
+        env:
+          BrevoApiKey: ${{ secrets.BrevoApiKey }}
         # Railway deploys automatically via its native GitHub integration.
         # This workflow acts as a CI gate: if build/tests fail, the commit
         # is marked failed and Railway will not deploy.
