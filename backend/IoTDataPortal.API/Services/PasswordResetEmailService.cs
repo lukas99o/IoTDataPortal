@@ -18,7 +18,7 @@ public class PasswordResetEmailService : IPasswordResetEmailService
         _logger = logger;
         _httpClient = httpClient;
 
-        var apiKey = _configuration["BrevoApiKey"]
+        var apiKey = _configuration["Brevo:ApiKey"]
             ?? Environment.GetEnvironmentVariable("BrevoApiKey")
             ?? throw new InvalidOperationException("Brevo API key is not configured");
 
