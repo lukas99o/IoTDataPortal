@@ -1,5 +1,6 @@
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
+using DotNetEnv;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using IoTDataPortal.API.Hubs;
@@ -13,10 +14,22 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
+if (string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Development", StringComparison.OrdinalIgnoreCase))
+{
+    // Load local .env values into process environment for development.
+    Env.Load();
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Force API to listen on port 8080
-builder.WebHost.UseUrls("http://0.0.0.0:8080");
+if (builder.Environment.IsProduction())
+{
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.ListenAnyIP(8080);
+    });
+}
 
 // Add DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -86,8 +99,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<RegisterDtoValidator>();
 // Add Controllers
 builder.Services.AddControllers();
 
-// Add services
-builder.Services.AddScoped<IPasswordResetEmailService, PasswordResetEmailService>();
+// Add HttpClient for PasswordResetEmailService
+builder.Services.AddHttpClient<IPasswordResetEmailService, PasswordResetEmailService>();
 
 // Add SignalR
 builder.Services.AddSignalR();

@@ -1,3 +1,4 @@
+using DotNetEnv;
 using IoTDataPortal.Models.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
@@ -14,6 +15,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        Env.TraversePath().Load();
         builder.UseEnvironment("Testing");
 
         builder.ConfigureAppConfiguration((_, configBuilder) =>
@@ -24,6 +26,9 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 ["Jwt:Secret"] = "this-is-a-very-long-test-secret-key-123456",
                 ["Jwt:Issuer"] = "test-issuer",
                 ["Jwt:Audience"] = "test-audience",
+                ["Brevo:FromEmail"] = "test@example.com",
+                ["Brevo:FromName"] = "IoT Data Portal Test",
+                ["BrevoApiKey"] = Environment.GetEnvironmentVariable("BrevoApiKey")
             };
 
             configBuilder.AddInMemoryCollection(testConfig);

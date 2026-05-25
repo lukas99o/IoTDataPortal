@@ -1,5 +1,5 @@
-using System.Net;
-using System.Net.Mail;
+using System.Text;
+using System.Text.Json;
 
 namespace IoTDataPortal.API.Services;
 
@@ -7,112 +7,110 @@ public class PasswordResetEmailService : IPasswordResetEmailService
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<PasswordResetEmailService> _logger;
+    private readonly HttpClient _httpClient;
 
-    public PasswordResetEmailService(IConfiguration configuration, ILogger<PasswordResetEmailService> logger)
+    public PasswordResetEmailService(
+        IConfiguration configuration,
+        ILogger<PasswordResetEmailService> logger,
+        HttpClient httpClient)
     {
         _configuration = configuration;
         _logger = logger;
+        _httpClient = httpClient;
+
+        var appsettingsApiKey = _configuration["Brevo:ApiKey"];
+        var environmentApiKey = Environment.GetEnvironmentVariable("BrevoApiKey");
+
+        if (appsettingsApiKey == null && environmentApiKey == null)
+            throw new InvalidOperationException("Brevo API key is not configured");
+
+        _httpClient.BaseAddress = new Uri("https://api.brevo.com/");
+
+        if (!string.IsNullOrWhiteSpace(appsettingsApiKey))
+            _httpClient.DefaultRequestHeaders.Add("api-key", appsettingsApiKey);
+        else if (!string.IsNullOrWhiteSpace(environmentApiKey))
+            _httpClient.DefaultRequestHeaders.Add("api-key", environmentApiKey);
+        else 
+            throw new InvalidOperationException("Brevo API key is not configured");        
     }
 
     public async Task SendResetPasswordEmailAsync(string toEmail, string resetLink)
     {
-        var host = _configuration["Smtp:Host"];
-        var fromEmail = _configuration["Smtp:FromEmail"];
+        var fromEmail = _configuration["Brevo:FromEmail"];
+        var fromName = _configuration["Brevo:FromName"] ?? "IoT Data Portal";
 
-        if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(fromEmail))
+        if (string.IsNullOrWhiteSpace(fromEmail))
         {
             _logger.LogWarning(
-                "SMTP not configured. Password reset email for {Email} was not sent. Reset link: {ResetLink}",
+                "Brevo not configured. Password reset email for {Email} was not sent. Reset link: {ResetLink}",
                 toEmail,
                 resetLink);
             return;
         }
 
-        var port = int.TryParse(_configuration["Smtp:Port"], out var configuredPort)
-            ? configuredPort
-            : 587;
-        var enableSsl = bool.TryParse(_configuration["Smtp:EnableSsl"], out var configuredEnableSsl)
-            ? configuredEnableSsl
-            : true;
-        var username = _configuration["Smtp:Username"];
-        var password = _configuration["Smtp:Password"];
-
-        using var client = new SmtpClient(host, port)
+        var payload = new
         {
-            EnableSsl = enableSsl
-        };
-
-        if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password))
-        {
-            client.Credentials = new NetworkCredential(username, password);
-        }
-
-        using var message = new MailMessage
-        {
-            From = new MailAddress(fromEmail),
-            Subject = "Reset your IoT Data Portal password",
-            Body = $"""
+            sender = new { email = fromEmail, name = fromName },
+            to = new[] { new { email = toEmail } },
+            subject = "Reset your IoT Data Portal password",
+            htmlContent = $"""
                 <p>You requested a password reset for your IoT Data Portal account.</p>
                 <p><a href="{resetLink}">Click here to reset your password</a></p>
                 <p>If the button does not work, copy and paste this URL into your browser:</p>
                 <p>{resetLink}</p>
-                """,
-            IsBodyHtml = true
+                """
         };
 
-        message.To.Add(toEmail);
-
-        await client.SendMailAsync(message);
+        await SendAsync(payload);
     }
 
-    public async Task SendEmailVerificationEmailAsync(string toEmail, string verificationLink)
+    public async Task<bool> SendEmailVerificationEmailAsync(string toEmail, string verificationLink)
     {
-        var host = _configuration["Smtp:Host"];
-        var fromEmail = _configuration["Smtp:FromEmail"];
+        var fromEmail = _configuration["Brevo:FromEmail"];
+        var fromName = _configuration["Brevo:FromName"] ?? "IoT Data Portal";
 
-        if (string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(fromEmail))
+        if (string.IsNullOrWhiteSpace(fromEmail))
         {
             _logger.LogWarning(
-                "SMTP not configured. Verification email for {Email} was not sent. Verification link: {VerificationLink}",
+                "Brevo not configured. Verification email for {Email} was not sent. Verification link: {VerificationLink}",
                 toEmail,
                 verificationLink);
-            return;
+            return false;
         }
 
-        var port = int.TryParse(_configuration["Smtp:Port"], out var configuredPort)
-            ? configuredPort
-            : 587;
-        var enableSsl = bool.TryParse(_configuration["Smtp:EnableSsl"], out var configuredEnableSsl)
-            ? configuredEnableSsl
-            : true;
-        var username = _configuration["Smtp:Username"];
-        var password = _configuration["Smtp:Password"];
-
-        using var client = new SmtpClient(host, port)
+        var payload = new
         {
-            EnableSsl = enableSsl
-        };
-
-        if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password))
-        {
-            client.Credentials = new NetworkCredential(username, password);
-        }
-
-        using var message = new MailMessage
-        {
-            From = new MailAddress(fromEmail),
-            Subject = "Verify your IoT Data Portal email",
-            Body = $"""
+            sender = new { email = fromEmail, name = fromName },
+            to = new[] { new { email = toEmail } },
+            subject = "Verify your IoT Data Portal email",
+            htmlContent = $"""
                 <p>Welcome to IoT Data Portal.</p>
                 <p><a href="{verificationLink}">Click here to verify your email address</a></p>
                 <p>If the button does not work, copy and paste this URL into your browser:</p>
                 <p>{verificationLink}</p>
-                """,
-            IsBodyHtml = true
+                """
         };
 
-        message.To.Add(toEmail);
+        await SendAsync(payload);
+        return true;
+    }
 
-        await client.SendMailAsync(message);
+    private async Task SendAsync(object payload)
+    {
+        var json = JsonSerializer.Serialize(payload);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PostAsync("v3/smtp/email", content);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            _logger.LogError(
+                "Brevo API returned {StatusCode}: {Body}",
+                response.StatusCode,
+                body);
+
+            response.EnsureSuccessStatusCode();
+        }
     }
 }
