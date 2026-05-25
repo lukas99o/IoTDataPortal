@@ -43,6 +43,11 @@ export const authService = {
     return response.data;
   },
 
+  guestLogin: async (): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>('/auth/guest-login');
+    return response.data;
+  },
+
   forgotPassword: async (data: ForgotPasswordData): Promise<MessageResponse> => {
     const response = await api.post<MessageResponse>('/auth/forgot-password', data);
     return response.data;

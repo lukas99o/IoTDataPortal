@@ -15,6 +15,9 @@ namespace IoTDataPortal.API.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
+    private const string GuestEmail = "guest@iotdataportal.local";
+    private const string GuestPassword = "GuestUser1!";
+
     private readonly UserManager<User> _userManager;
     private readonly IConfiguration _configuration;
     private readonly IPasswordResetEmailService _passwordResetEmailService;
@@ -85,6 +88,13 @@ public class AuthController : ControllerBase
         }
 
         return Ok(await GenerateAuthResponse(user));
+    }
+
+    [HttpPost("guest-login")]
+    public async Task<ActionResult<AuthResponseDto>> GuestLogin()
+    {
+        var guestUser = await EnsureGuestUserAsync();
+        return Ok(await GenerateAuthResponse(guestUser));
     }
 
     [HttpGet("wake-up")]
@@ -214,5 +224,35 @@ public class AuthController : ControllerBase
             : configuredBaseUrl.Trim().Trim('"', '\'').TrimEnd('/');
 
         return $"{sanitizedBaseUrl}/{path}?{queryString}";
+    }
+
+    private async Task<User> EnsureGuestUserAsync()
+    {
+        var existingGuest = await _userManager.FindByEmailAsync(GuestEmail);
+        if (existingGuest != null)
+        {
+            if (!existingGuest.EmailConfirmed)
+            {
+                existingGuest.EmailConfirmed = true;
+                await _userManager.UpdateAsync(existingGuest);
+            }
+
+            return existingGuest;
+        }
+
+        var guest = new User
+        {
+            UserName = GuestEmail,
+            Email = GuestEmail,
+            EmailConfirmed = true,
+        };
+
+        var createResult = await _userManager.CreateAsync(guest, GuestPassword);
+        if (!createResult.Succeeded)
+        {
+            throw new InvalidOperationException("Failed to create guest user account.");
+        }
+
+        return guest;
     }
 }

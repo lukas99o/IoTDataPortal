@@ -68,6 +68,28 @@ public class AuthIntegrationTests : IClassFixture<CustomWebApplicationFactory>
     }
 
     [Fact]
+    public async Task GuestLogin_CreatesOrUsesGuestUser_ReturnsToken()
+    {
+        var client = _factory.CreateClient();
+
+        var response = await client.PostAsync("/api/auth/guest-login", content: null);
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var payload = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
+        payload.Should().NotBeNull();
+        payload!.Email.Should().Be("guest@iotdataportal.local");
+        payload.Token.Should().NotBeNullOrWhiteSpace();
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+        var guestUser = await userManager.FindByEmailAsync("guest@iotdataportal.local");
+
+        guestUser.Should().NotBeNull();
+        guestUser!.EmailConfirmed.Should().BeTrue();
+    }
+
+    [Fact]
     public async Task Login_UnverifiedEmail_ReturnsUnauthorized()
     {
         var email = $"unverified-{Guid.NewGuid():N}@example.com";

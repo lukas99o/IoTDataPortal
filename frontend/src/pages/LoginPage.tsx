@@ -18,13 +18,14 @@ type FormData = yup.InferType<typeof schema>;
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login } = useAuth();
+  const { login, loginAsGuest } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [lastLoginEmail, setLastLoginEmail] = useState('');
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGuestSubmitting, setIsGuestSubmitting] = useState(false);
 
   const from = location.state?.from?.pathname || '/';
 
@@ -91,6 +92,26 @@ export function LoginPage() {
       }
     } finally {
       setIsResendingVerification(false);
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    try {
+      setError(null);
+      setResendMessage(null);
+      setShowResendVerification(false);
+      setIsGuestSubmitting(true);
+      await loginAsGuest();
+      navigate(from, { replace: true });
+    } catch (err: unknown) {
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosError = err as { response?: { data?: { message?: string } } };
+        setError(axiosError.response?.data?.message || 'Guest login failed');
+      } else {
+        setError('Guest login failed');
+      }
+    } finally {
+      setIsGuestSubmitting(false);
     }
   };
   
@@ -175,10 +196,21 @@ export function LoginPage() {
           <div>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isGuestSubmitting}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isSubmitting ? 'Signing in...' : 'Sign in'}
+            </button>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              onClick={handleGuestLogin}
+              disabled={isSubmitting || isGuestSubmitting}
+              className="group relative w-full flex justify-center py-2 px-4 border border-blue-200 dark:border-blue-800 text-sm font-medium rounded-md text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {isGuestSubmitting ? 'Signing in as guest...' : 'Login as Guest'}
             </button>
           </div>
 

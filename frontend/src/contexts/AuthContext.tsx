@@ -14,6 +14,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (data: LoginData) => Promise<void>;
+  loginAsGuest: () => Promise<void>;
   register: (data: RegisterData) => Promise<RegisterResponse>;
   logout: () => void;
 }
@@ -46,6 +47,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     handleAuthResponse(response);
   };
 
+  const loginAsGuest = async () => {
+    const response = await authService.guestLogin();
+    handleAuthResponse(response);
+  };
+
   const register = async (data: RegisterData) => {
     return await authService.register(data);
   };
@@ -63,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         login,
+        loginAsGuest,
         register,
         logout,
       }}

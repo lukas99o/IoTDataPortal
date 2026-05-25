@@ -6,8 +6,9 @@ import { ForgotPasswordPage } from './ForgotPasswordPage';
 import { ResetPasswordPage } from './ResetPasswordPage';
 import { ThemeProvider } from '../contexts/ThemeContext';
 
-const { loginMock, registerMock, forgotPasswordMock, resetPasswordMock, navigateMock } = vi.hoisted(() => ({
+const { loginMock, loginAsGuestMock, registerMock, forgotPasswordMock, resetPasswordMock, navigateMock } = vi.hoisted(() => ({
   loginMock: vi.fn(),
+  loginAsGuestMock: vi.fn(),
   registerMock: vi.fn(),
   forgotPasswordMock: vi.fn(),
   resetPasswordMock: vi.fn(),
@@ -17,6 +18,7 @@ const { loginMock, registerMock, forgotPasswordMock, resetPasswordMock, navigate
 vi.mock('../contexts/AuthContext', () => ({
   useAuth: () => ({
     login: loginMock,
+    loginAsGuest: loginAsGuestMock,
     register: registerMock,
   }),
 }));
@@ -103,6 +105,25 @@ describe('Auth pages', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 
     expect(await screen.findByText('Invalid email or password')).toBeInTheDocument();
+  });
+
+  it('logs in as guest and navigates to dashboard', async () => {
+    loginAsGuestMock.mockResolvedValue(undefined);
+
+    render(
+      <ThemeProvider>
+        <MemoryRouter>
+          <LoginPage />
+        </MemoryRouter>
+      </ThemeProvider>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Login as Guest' }));
+
+    await waitFor(() => {
+      expect(loginAsGuestMock).toHaveBeenCalledTimes(1);
+      expect(navigateMock).toHaveBeenCalledWith('/', { replace: true });
+    });
   });
 
   it('submits register successfully and shows success message', async () => {
